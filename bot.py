@@ -40,21 +40,21 @@ def bot_help(message):
 @bot.message_handler(commands=['new_docs'])
 def bot_new_docs(message):
     args = message.text.split()
-    if args[0].isdigit():
-        bot.send_message(message.chat.id, rbc.get_news(int(args[0])))
+    if args[1].isdigit():
+        bot.send_message(message.chat.id, rbc.get_news(int(args[1])))
 
 
 @bot.message_handler(commands=['new_topics'])
 def bot_new_topics(message):
     args = message.text.split()
-    if args[0].isdigit():
-        bot.send_message(message.chat.id, rbc.get_topics(int(args[0])))
+    if args[1].isdigit():
+        bot.send_message(message.chat.id, rbc.get_topics(int(args[1])))
 
 
 @bot.message_handler(commands=['topic'])
 def bot_new_topics(message):
     args = message.text.split()
-    topic_information = rbc.get_topic_information(args[0])
+    topic_information = rbc.get_topic_information(" ".join(args[1:]))
     if topic_information is not None:
         bot.send_message(message.chat.id, topic_information)
 
