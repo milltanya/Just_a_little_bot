@@ -7,7 +7,7 @@ def get_main_soup():
 
 
 def get_soup(url):
-    return BeautifulSoup(requests.get(url).text.encode(), "lxml")
+    return BeautifulSoup(requests.get(url).text.encode())
 
 
 
