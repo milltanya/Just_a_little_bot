@@ -10,12 +10,14 @@ def get_soup(url):
     return BeautifulSoup(requests.get(url).text.encode(), "html.parser")
 
 
-
 def get_news(number):
     page = get_main_soup()
     answer = ""
     for new in page.find('div', {'class': 'news-feed__list'}).find_all('a', {'class': 'news-feed__item chrome js-yandex-counter'})[:number]:
         new_link = new.get('href')
+        index = new_link.rfind('?')
+        if index > 0:
+            new_link = new_link[:index]
         new_title = new.find('span', {'class': 'news-feed__item__title'}).text.strip()
         answer += new_title + "\n" + new_link + "\n\n"
     return answer
