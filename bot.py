@@ -25,7 +25,10 @@ def bot_new_docs(message):
 
 @bot.message_handler(commands=['new_topics'])
 def bot_new_topics(message):
+    print("new_topics")
+    print(message.text)
     args = message.text.split()
+    print(args)
     if args[0].isdigit():
         s = rbc_topics.get_topics(int(args[0]))
         bot.send_message(message.chat.id, s)
