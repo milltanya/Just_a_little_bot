@@ -14,9 +14,9 @@ def bot_help(message):
 
 @bot.message_handler(commands=['new_docs'])
 def bot_new_docs(message):
-    args = message.text.split()
-    if args[0].isdigit():
-        bot.send_message(message.chat.id, rbc_news.get_news(int(args[0])))
+    #args = message.text.split()
+    #if args[0].isdigit():
+    bot.send_message(message.chat.id, rbc_news.get_news(10))
 
 
 @bot.message_handler(commands=['new_topics'])
