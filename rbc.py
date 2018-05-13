@@ -1,96 +1,87 @@
 import requests
 from bs4 import BeautifulSoup
+from time import gmtime, strftime
 
 
-def get_main_soup():
-    return get_soup('https://www.rbc.ru/story/')
-
-
-def get_soup(url):
+def make_soup(url):
     return BeautifulSoup(requests.get(url).text.encode(), "html.parser")
 
 
-def get_news(number):
-    page = get_main_soup()
+def simplify_url(url):
+    index = url.rfind('?')
+    if index > 0:
+        url = url[:index]
+    return url
+
+
+def month(month_string):
+    if 'янв' in month_string:
+        return '01'
+    elif 'фев' in month_string:
+        return '02'
+    elif 'мар' in month_string:
+        return '03'
+    elif 'апр' in month_string:
+        return '04'
+    elif 'мая' in month_string:
+        return '05'
+    elif 'июн' in month_string:
+        return '06'
+    elif 'июл' in month_string:
+        return '07'
+    elif 'авг' in month_string:
+        return '08'
+    elif 'сен' in month_string:
+        return '09'
+    elif 'окт' in month_string:
+        return '10'
+    elif 'ноя' in month_string:
+        return '11'
+    elif 'дек' in month_string:
+        return '12'
+
+
+def string_to_time(time_string):
     answer = ""
-    for new in page.find('div', {'class': 'news-feed__list'}).find_all('a', {'class': 'news-feed__item chrome js-yandex-counter'})[:number]:
-        new_link = new.get('href')
-        index = new_link.rfind('?')
-        if index > 0:
-            new_link = new_link[:index]
-        new_title = new.find('span', {'class': 'news-feed__item__title'}).text.strip()
-        answer += new_title + "\n" + new_link + "\n\n"
+    info = time_string.replace(',', '').split()
+    if len(info) == 1:
+        answer = strftime("%Y%m%d", gmtime()) + info[0].replace(':', '')
+    elif len(info) == 3:
+        answer = strftime("%Y", gmtime()) + month(info[1]) + info[0] + info[2].replace(':', '')
+    elif len(info) == 4:
+        answer = info[2] + month(info[1]) + info[0] + info[3].replace(':', '')
     return answer
 
 
-def get_topic_list(page):
-    return page.find('div', {'class': 'l-row js-load-container'}).find_all('div', {'class': 'item item_story js-story-item'})
+def parse_article(url):
+    page = make_soup(url)
+    title = page.find('div', {'class': 'article__header__title'}).find('span', {'class': 'js-slide-title'}).text.strip()
+    time = string_to_time(page.find('span', {'class': 'article__header__date'}).text.strip())
+    text = ""
+    paragraphs = page.find('div', {'class': 'article__text'}).find_all('p')
+    for par in paragraphs:
+        if par.find('div') is None:
+            text += par.text.strip() + '\n'
+    tags = {}
+    for tag in page.find_all('a', {'class': 'article__tags__link'}):
+        tag_title = tag.text.strip()
+        tag_link = tag.get('href')
+        tags.update({tag_title: tag_link})
+    return {'Url': url, 'Title': title, 'Time' : time, 'Text': text, 'Tags': tags}
 
 
-def get_item_title(item):
-    return item.find('span', {'class': 'item__title'}).text.strip()
+def parse_docs_in_theme(url):
+    page = make_soup(url)
+    docs = []
+    for document in page.find_all('a', {'class': 'item__link no-injects js-yandex-counter'}):
+        docs.append(document.get('href'))
+    return docs
 
 
-def get_item_link(item):
-    return item.find('a').get('href')
-
-
-def get_topic_description(topic):
-    return topic.find('span', {'class': 'item__text'}).text.strip()
-
-
-def get_topics(number):
-    answer = ""
-    for topic in get_topic_list(get_main_soup())[:number]:
-        topic_link = get_item_link(topic)
-        topic_title = get_item_title(topic)
-        answer += topic_title + "\n" + topic_link + "\n\n"
-    return answer
-
-
-def get_docs(topic_link):
-    return get_soup(topic_link).find_all('div', {'class': 'item item_story-single js-story-item'})
-
-
-def get_doc_paragraphs(doc_page):
-    return doc_page.find('div', {'class': 'article__text'}).find_all('p')
-
-
-def get_doc_text(doc_title):
-    for topic in get_topic_list(get_main_soup()):
-        topic_link = get_item_link(topic)
-        documents = get_docs(topic_link)
-        for doc in documents:
-            title = get_item_title(doc)
-            if title == doc_title:
-                break
-        if title == doc_title:
-            break
-    if title == doc_title:
-        doc_paragraphs = get_doc_paragraphs(get_soup(get_item_link(doc)))
-        answer = doc_title
-        for paragraph in doc_paragraphs:
-            answer += '\n' + paragraph.text.strip()
-        return answer
-    else:
-        return None
-
-
-def get_topic_information(topic_title):
-    for topic in get_topic_list(get_main_soup()):
-        title = get_item_title(topic)
-        if title == topic_title:
-            break
-    if title == topic_title:
-        answer = topic_title
-        topic_link = get_item_link(topic)
-        topic_description = get_topic_description(topic)
-        answer += "\n" + topic_description + "\n"
-        documents = get_docs(topic_link)
-        for doc in documents[:5]:
-            doc_title = get_item_title(doc)
-            doc_link = get_item_link(doc)
-            answer += "\n" + doc_title + "\n" + doc_link + "\n"
-        return answer
-    else:
-        return None
+def parse_theme(url):
+    page = make_soup(url)
+    title = page.find('div', {'class': 'story__title js-story-one-id'}).contents[0].strip()[:-1]
+    print(title)
+    text = page.find('span', {'class': 'story__text'}).text.strip()
+    print(text)
+    return {'Title': title, 'Url': url, 'Description' : text}
