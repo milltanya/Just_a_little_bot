@@ -81,7 +81,5 @@ def parse_docs_in_theme(url):
 def parse_theme(url):
     page = make_soup(url)
     title = page.find('div', {'class': 'story__title js-story-one-id'}).contents[0].strip()[:-1]
-    print(title)
     text = page.find('span', {'class': 'story__text'}).text.strip()
-    print(text)
     return {'Title': title, 'Url': url, 'Description' : text}

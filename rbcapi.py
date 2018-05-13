@@ -28,8 +28,11 @@ def update():
 
 
 def get_new_docs(number):
+    print(2)
     update()
+    print(3)
     docs = database.get_docs(number)
+    print(4)
     answer = ""
     for document in docs:
         answer += document[0] + '\n' + document[1] + '\n\n'
