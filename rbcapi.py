@@ -28,6 +28,7 @@ def update():
 
 
 def get_new_docs(number):
+    update()
     docs = database.get_docs(number)
     answer = ""
     for document in docs:
@@ -36,6 +37,7 @@ def get_new_docs(number):
 
 
 def get_new_themes(number):
+    update()
     themes = database.get_themes(number)
     answer = ""
     for theme in themes:
@@ -44,6 +46,7 @@ def get_new_themes(number):
 
 
 def get_theme(title):
+    update()
     theme = database.get_theme_information(title)
     answer = title + '\n' + theme['Description']
     for doc in theme['Documents']:
