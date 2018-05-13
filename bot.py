@@ -9,21 +9,27 @@ bot = telebot.TeleBot(config.token)
 
 @bot.message_handler(commands=['help', 'start'])
 def bot_help(message):
-    bot.send_message(message.chat.id, help.get_help())
+    s = help.get_help()
+    bot.send_message(message.chat.id, s)
+    print(s)
 
 
 @bot.message_handler(commands=['new_docs'])
 def bot_new_docs(message):
     #args = message.text.split()
     #if args[0].isdigit():
-    bot.send_message(message.chat.id, rbc_news.get_news(10))
+    s = rbc_news.get_news(10)
+    bot.send_message(message.chat.id, s)
+    print(s)
 
 
 @bot.message_handler(commands=['new_topics'])
 def bot_new_topics(message):
     args = message.text.split()
     if args[0].isdigit():
-        bot.send_message(message.chat.id, rbc_topics.get_topics(int(args[0])))
+        s = rbc_topics.get_topics(int(args[0]))
+        bot.send_message(message.chat.id, s)
+        print(s)
 
 
 @bot.message_handler(commands=['topic'])
