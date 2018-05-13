@@ -7,4 +7,4 @@ def get_main_soup():
 
 
 def get_soup(url):
-    return BeautifulSoup(requests.get(url).text.encode())
+    return BeautifulSoup(requests.get(url).text.encode(), "html.parser")
