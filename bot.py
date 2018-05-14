@@ -71,7 +71,6 @@ def bot_topic(message):
         bot.send_message(message.chat.id, rbcapi.doc(" ".join(args[1:])))
 
 
-
 @bot.message_handler()
 def repeat_all_messages(message):
     bot.send_message(message.chat.id, "kek\n" + message.text)
