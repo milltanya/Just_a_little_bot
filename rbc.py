@@ -65,7 +65,7 @@ def parse_article(url):
         page.find('span', {'class': 'article__header__date'}).text.strip())
     text = ""
     for par in page.find('div', {'class': 'article__text'}).find_all('p')[:10]:
-        if par.find('div') is None:
+        if par.find('div') is None and par.find('script') is None:
             text += par.text.strip() + '\n'
     tags = {}
     for tag in page.find_all('a', {'class': 'article__tags__link'})[:10]:
