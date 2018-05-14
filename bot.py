@@ -38,7 +38,6 @@ def bot_new_docs(message):
         bot.send_message(message.chat.id, "База обновлена")
 
 
-
 @bot.message_handler(commands=['new_docs'])
 def bot_new_docs(message):
     args = message.text.split()
@@ -57,8 +56,15 @@ def bot_new_topics(message):
 def bot_topic(message):
     args = message.text.split()
     if len(args) >= 2:
-        topic_information = rbcapi.topic(" ".join(args[1:]))
-        bot.send_message(message.chat.id, topic_information)
+        bot.send_message(message.chat.id, rbcapi.topic(" ".join(args[1:])))
+
+
+@bot.message_handler(commands=['doc'])
+def bot_topic(message):
+    args = message.text.split()
+    if len(args) >= 2:
+        bot.send_message(message.chat.id, rbcapi.doc(" ".join(args[1:])))
+
 
 
 @bot.message_handler()
