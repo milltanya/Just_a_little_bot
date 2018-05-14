@@ -12,7 +12,7 @@ def update():
     new_themes = []
     new_docs_in_theme = {}
     new_documents = []
-    for item in page.find_all('a', {'class': 'item__link no-injects'}):
+    for item in page.find_all('a', {'class': 'item__link no-injects'})[:10]:
         print('update_5')
         theme_url = rbc.simplify_url(item.get('href'))
         if theme_url not in existing_themes_url:

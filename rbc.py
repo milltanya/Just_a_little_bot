@@ -58,12 +58,11 @@ def parse_article(url):
     title = page.find('div', {'class': 'article__header__title'}).find('span', {'class': 'js-slide-title'}).text.strip()
     time = string_to_time(page.find('span', {'class': 'article__header__date'}).text.strip())
     text = ""
-    paragraphs = page.find('div', {'class': 'article__text'}).find_all('p')
-    for par in paragraphs:
+    for par in page.find('div', {'class': 'article__text'}).find_all('p')[:10]:
         if par.find('div') is None:
             text += par.text.strip() + '\n'
     tags = {}
-    for tag in page.find_all('a', {'class': 'article__tags__link'}):
+    for tag in page.find_all('a', {'class': 'article__tags__link'})[:10]:
         tag_title = tag.text.strip()
         tag_link = tag.get('href')
         tags.update({tag_title: tag_link})
@@ -73,7 +72,7 @@ def parse_article(url):
 def parse_docs_in_theme(url):
     page = make_soup(url)
     docs = []
-    for document in page.find_all('a', {'class': 'item__link no-injects js-yandex-counter'}):
+    for document in page.find_all('a', {'class': 'item__link no-injects js-yandex-counter'})[:10]:
         docs.append(document.get('href'))
     return docs
 
