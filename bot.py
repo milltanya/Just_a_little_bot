@@ -33,7 +33,7 @@ def bot_help(message):
 def bot_new_docs(message):
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
-        print(1)
+        print('bot_new_docs')
         bot.send_message(message.chat.id, rbcapi.get_new_docs(int(args[1])))
 
 
