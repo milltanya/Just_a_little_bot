@@ -30,13 +30,19 @@ def bot_help(message):
     bot.send_message(message.chat.id, help_text)
 
 
+@bot.message_handler(commands=['update'])
+def bot_new_docs(message):
+    args = message.text.split()
+    if len(args) == 1:
+        rbcapi.update()
+        bot.send_message(message.chat.id, "База обновлена")
+
+
+
 @bot.message_handler(commands=['new_docs'])
 def bot_new_docs(message):
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
-        f = open('tmp.txt', 'a')
-        f.write('bot_new_docs\n')
-        f.close()
         bot.send_message(message.chat.id, rbcapi.new_docs(int(args[1])))
 
 
