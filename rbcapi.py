@@ -59,6 +59,7 @@ def update():
                 f.close()
     f = open('tmp.txt', 'a')
     f.write('update_10\n')
+    f.write(new_themes)
     f.close()
     database.update_themes(new_themes)
     f = open('tmp.txt', 'a')
