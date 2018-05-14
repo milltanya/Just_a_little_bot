@@ -2,6 +2,7 @@ import sqlite3
 
 
 def create_database():
+    print('create_database')
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     cur.execute('''
