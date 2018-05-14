@@ -2,7 +2,9 @@ import sqlite3
 
 
 def create_database():
-    print('create_database')
+    f = open('tmp.txt', 'a')
+    f.write('create_database\n')
+    f.close()
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     cur.execute('''
