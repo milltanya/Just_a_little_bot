@@ -32,6 +32,7 @@ def bot_help(message):
 
 @bot.message_handler(commands=['update'])
 def bot_new_docs(message):
+    rbcapi.update()
     args = message.text.split()
     if len(args) == 1:
         bot.send_message(message.chat.id, "База обновлена")
