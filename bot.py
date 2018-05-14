@@ -28,18 +28,20 @@ def bot_help(message):
                 'распределение частот слов в рамках всей темы, ' \
                 'распределение длин слов в рамках всей темы)'
     bot.send_message(message.chat.id, help_text)
+    rbcapi.update()
 
 
 @bot.message_handler(commands=['update'])
 def bot_new_docs(message):
+    rbcapi.update()
     args = message.text.split()
     if len(args) == 1:
-        rbcapi.update()
         bot.send_message(message.chat.id, "База обновлена")
 
 
 @bot.message_handler(commands=['new_docs'])
 def bot_new_docs(message):
+    rbcapi.update()
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
         bot.send_message(message.chat.id, rbcapi.new_docs(int(args[1])))
@@ -47,6 +49,7 @@ def bot_new_docs(message):
 
 @bot.message_handler(commands=['new_topics'])
 def bot_new_topics(message):
+    rbcapi.update()
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
         bot.send_message(message.chat.id, rbcapi.new_topics(int(args[1])))
@@ -54,6 +57,7 @@ def bot_new_topics(message):
 
 @bot.message_handler(commands=['topic'])
 def bot_topic(message):
+    rbcapi.update()
     args = message.text.split()
     if len(args) >= 2:
         bot.send_message(message.chat.id, rbcapi.topic(" ".join(args[1:])))
@@ -61,6 +65,7 @@ def bot_topic(message):
 
 @bot.message_handler(commands=['doc'])
 def bot_topic(message):
+    rbcapi.update()
     args = message.text.split()
     if len(args) >= 2:
         bot.send_message(message.chat.id, rbcapi.doc(" ".join(args[1:])))
@@ -70,6 +75,7 @@ def bot_topic(message):
 @bot.message_handler()
 def repeat_all_messages(message):
     bot.send_message(message.chat.id, "kek\n" + message.text)
+    rbcapi.update()
 
 
 if __name__ == '__main__':
