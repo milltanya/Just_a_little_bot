@@ -161,4 +161,4 @@ def get_theme_information(title):
 
 
 if __name__ == "__main__":
-    main()
+    create_database()
