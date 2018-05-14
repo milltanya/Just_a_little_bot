@@ -28,8 +28,11 @@ def update():
             if doc_url not in existing_docs_url:
                 print('update_9')
                 existing_docs_url.append(doc_url)
+                print('update_9.1')
                 doc = rbc.parse_article(rbc.simplify_url(doc_url))
+                print('update_9.2')
                 new_documents.append(doc)
+                print('update_9.3')
     print('update_10')
     database.update_themes(new_themes)
     print('update_11')
