@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from time import gmtime, strftime
 session = requests.Session()
-session.max_redirects = 100000
+session.max_redirects = 100
 
 
 def make_soup(url):

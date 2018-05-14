@@ -62,6 +62,7 @@ def get_existing_docs_url():
 
 
 def update_docs_in_theme(docs_in_theme):
+    print(docs_in_theme)
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     for theme in docs_in_theme.keys():
@@ -75,6 +76,7 @@ def update_docs_in_theme(docs_in_theme):
 
 
 def update_themes(themes):
+    print(themes)
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     existing_url = get_existing_themes_url()
@@ -90,6 +92,7 @@ def update_themes(themes):
 
 
 def update_documents(documents):
+    print(documents)
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     existing_url = get_existing_docs_url()
