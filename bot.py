@@ -4,6 +4,7 @@ import rbcapi
 
 token = '570771300:AAGMX2JIFGv-2gglbJZDMj0xN0MFjTjy0Es'
 bot = telebot.TeleBot(token)
+rbcapi.database.create_database()
 
 
 @bot.message_handler(commands=['help', 'start'])

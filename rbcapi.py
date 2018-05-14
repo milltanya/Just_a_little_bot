@@ -1,6 +1,5 @@
 import database
 import rbc
-database.create_database()
 
 def update():
     print('update_1')
