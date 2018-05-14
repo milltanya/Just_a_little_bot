@@ -37,21 +37,21 @@ def bot_new_docs(message):
         f = open('tmp.txt', 'a')
         f.write('bot_new_docs\n')
         f.close()
-        bot.send_message(message.chat.id, rbcapi.get_new_docs(int(args[1])))
+        bot.send_message(message.chat.id, rbcapi.new_docs(int(args[1])))
 
 
 @bot.message_handler(commands=['new_topics'])
 def bot_new_topics(message):
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
-        bot.send_message(message.chat.id, rbcapi.get_new_themes(int(args[1])))
+        bot.send_message(message.chat.id, rbcapi.new_topics(int(args[1])))
 
 
 @bot.message_handler(commands=['topic'])
 def bot_topic(message):
     args = message.text.split()
     if len(args) >= 2:
-        topic_information = rbcapi.get_theme(" ".join(args[1:]))
+        topic_information = rbcapi.topic(" ".join(args[1:]))
         bot.send_message(message.chat.id, topic_information)
 
 

@@ -2,51 +2,48 @@ import sqlite3
 
 
 def create_database():
-    f = open('tmp.txt', 'a')
-    f.write('create_database\n')
-    f.close()
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     cur.execute('''
         CREATE TABLE IF NOT EXISTS Document (
-            Url TEXT PRIMARY KEY,
-            Title TEXT NOT NULL,
-            Time TEXT NOT NULL,
-            Description TEXT NOT NULL
+            url TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            time TEXT NOT NULL,
+            text TEXT NOT NULL
         )
     ''')
     cur.execute('''
         CREATE TABLE IF NOT EXISTS Document_tag (
-            Doc_Url TEXT REFERENCES Document(Url),
-            Title TEXT NOT NULL,
-            Url TEXT NOT NULL,
-            PRIMARY KEY(Doc_Url, Title)
+            doc_url TEXT REFERENCES Document(url),
+            title TEXT NOT NULL,
+            url TEXT NOT NULL,
+            PRIMARY KEY(doc_url, title)
         )
     ''')
     cur.execute('''
-        CREATE TABLE IF NOT EXISTS Theme (
-            Url TEXT PRIMARY KEY,
-            Title TEXT NOT NULL,
-            Description TEXT
+        CREATE TABLE IF NOT EXISTS Topic (
+            url TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            description TEXT
         )
     ''')
     cur.execute('''
-        CREATE TABLE IF NOT EXISTS Theme_document (
-            Theme_Url TEXT REFERENCES Theme(Url),
-            Doc_Url TEXT REFERENCES Document(Url),
-            PRIMARY KEY(Theme_Url, Doc_Url)
+        CREATE TABLE IF NOT EXISTS Topic_document (
+            topic_url TEXT REFERENCES Topic(url),
+            doc_url TEXT REFERENCES Document(url),
+            PRIMARY KEY(topic_url, doc_url)
         )
     ''')
     conn.commit()
     conn.close()
 
 
-def get_existing_themes_url():
+def get_existing_topics_url():
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     existing_url = cur.execute('''
-        SELECT Url
-        FROM Theme
+        SELECT url
+        FROM Topic
     ''').fetchall()
     conn.close()
     return existing_url
@@ -56,115 +53,149 @@ def get_existing_docs_url():
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     existing_url = cur.execute('''
-        SELECT Url
+        SELECT url
         FROM Document
     ''').fetchall()
     conn.close()
     return existing_url
 
 
-def update_docs_in_theme(docs_in_theme):
-    print(docs_in_theme)
+def update_docs_in_topic(docs_in_topic):
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
-    for theme in docs_in_theme.keys():
-        for doc in docs_in_theme[theme]:
-            cur.execute('''
-                INSERT INTO Theme_document (Theme_Url, Doc_Url)
-                VALUES ({}, {})
-            '''.format(theme, doc))
+    for topic in docs_in_topic.keys():
+        for doc in docs_in_topic[topic]:
+            try:
+                cur.execute('''
+                    INSERT INTO Topic_document (topic_url, Doc_url)
+                    VALUES ("{}", "{}")
+                '''.format(topic, doc))
+            except sqlite3.IntegrityError:
+                pass
     conn.commit()
     conn.close()
 
 
-def update_themes(themes):
-    print(themes)
+def update_topics(topics):
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
-    existing_url = get_existing_themes_url()
-    for theme in themes:
-        if theme['Url'] not in existing_url:
-            existing_url.append(theme['Url'])
+    for topic in topics:
+        try:
             cur.execute('''
-                INSERT INTO Theme (Url, Title, Description)
-                VALUES ({}, {}, {})
-            '''.format(theme['Url'], theme['Title'], theme['Description']))
+                INSERT INTO Topic (url, title, description)
+                VALUES ("{}", "{}", "{}")
+            '''.format(topic['url'], topic['title'], topic['description']))
+        except sqlite3.IntegrityError:
+            pass
     conn.commit()
     conn.close()
 
 
 def update_documents(documents):
-    print(documents)
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     existing_url = get_existing_docs_url()
     for document in documents:
-        if document['Url'] not in existing_url:
-            existing_url.append(document['Url'])
-            cur.execute('''
-                INSERT INTO Document (Url, Title, Time, Description)
-                VALUES ({}, {}, {}, {})
-            '''.format(document['Url'], document['Title'], document['Time'], document['Description']))
-            for tag_title in document['Tags'].keys():
+        if document['url'] not in existing_url:
+            existing_url.append(document['url'])
+            try:
                 cur.execute('''
-                    INSERT INTO Document_tag (Doc_Url, Title, Url)
-                    VALUES ({}, {}, {})
-                '''.format(document['Url'], tag_title, document['Tags'][tag_title]))
+                    INSERT INTO Document (url, title, time, text)
+                    VALUES ("{}", "{}", "{}", "{}")
+                '''.format(document['url'], document['title'], document['time'], document['text']))
+            except sqlite3.IntegrityError:
+                pass
+            for tag_title in document['tags'].keys():
+                try:
+                    cur.execute('''
+                        INSERT INTO Document_tag (doc_url, title, url)
+                        VALUES ("{}", "{}", "{}")
+                    '''.format(document['url'], tag_title, document['tags'][tag_title]))
+                except sqlite3.OperationalError:
+                    print('''
+                        INSERT INTO Document_tag (doc_url, title, url)
+                        VALUES ("{}", "{}", "{}")
+                    '''.format(document['url'], tag_title, document['tags'][tag_title]))
+                except sqlite3.IntegrityError:
+                    pass
     conn.commit()
     conn.close()
 
 
-def get_docs(number):
+def new_docs(number):
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     docs = cur.execute('''
-        SELECT Title, Url
+        SELECT title, url
         FROM Document
-        ORDER BY Time DESC
+        ORDER BY time DESC
     ''').fetchall()[:number]
     conn.close()
     return docs
 
 
-def get_themes(number):
+def new_topics(number):
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     docs = cur.execute('''
-        SELECT Theme.Title, Theme.Url
-        FROM Theme
-        JOIN Theme_document
-        ON Theme.Url = Theme_document.Theme_Url
+        SELECT Topic.title, Topic.url
+        FROM Topic
+        JOIN Topic_document
+        ON Topic.url = Topic_document.topic_url
         JOIN Document
-        ON Theme_document.Doc_Url = Document.Url
-        GROUP BY Theme.Url
-        ORDER BY MAX(Document.Time) DESC
+        ON Topic_document.doc_url = Document.url
+        GROUP BY Topic.url
+        ORDER BY MAX(Document.time) DESC
     ''').fetchall()[:number]
     conn.close()
     return docs
 
 
-def get_theme_information(title):
+def topic(title):
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     description = cur.execute('''
-        SELECT Description
-        FROM Theme
-        WHERE Title = {}
-    '''.format(title))[0]
+        SELECT description
+        FROM Topic
+        WHERE title = "{}"
+    '''.format(title)).fetchall()[0][0]
     docs = cur.execute('''
-        SELECT Document.Title, Document.Url
-        FROM (SELECT Url
-        FROM Theme
-        WHERE Title = {}) AS A
-        JOIN Theme_document
-        ON A.Url = Theme_document.Theme_Url
+        SELECT Document.title, Document.url
+        FROM (SELECT url
+        FROM Topic
+        WHERE title = "{}") AS A
+        JOIN Topic_document
+        ON A.url = Topic_document.topic_url
         JOIN Document
-        ON Theme_document.Doc_Url = Document.Url
-        ORDER BY Document.Time DESC
-    '''.format(title))
+        ON Topic_document.doc_url = Document.url
+        ORDER BY Document.time DESC
+    '''.format(title)).fetchall()[:5]
     conn.close()
-    return {'Description': description, 'Documents': docs}
+    return {'description': description, 'documents': docs}
 
 
-if __name__ == "__main__":
-    create_database()
+def doc(title):
+    conn = sqlite3.connect('rbc.db')
+    cur = conn.cursor()
+    text = cur.execute('''
+            SELECT text
+            FROM Document
+            WHERE title = "{}"
+        '''.format(title)).fetchall()[0][0]
+    conn.close()
+    return text
+
+
+def words(topic_title):
+    pass
+
+
+def describe_doc(doc_title):
+    pass
+
+
+def describe_topic(topic_title):
+    pass
+
+
+create_database()
