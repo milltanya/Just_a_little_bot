@@ -380,6 +380,3 @@ def describe_topic(topic_title):
         answer = ["Количество документов в теме " + str(docs_count) + '\n\nСредняя длина документа ' + str(int(docs_avg_length)) + ' слова', 'images/lengths/topics/' + topic_title + '.png', 'images/frequences/topics/' + topic_title + '.png']
     conn.close()
     return answer
-
-
-print(describe_topic("Новое правительство"))
