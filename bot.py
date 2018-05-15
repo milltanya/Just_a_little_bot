@@ -73,6 +73,29 @@ def bot_words(message):
         bot.send_message(message.chat.id, rbc_data.words(" ".join(args[1:])))
 
 
+@bot.message_handler(commands=['describe_doc'])
+def bot_words(message):
+    args = message.text.split()
+    if len(args) >= 2:
+        answer = rbc_data.describe_doc(" ".join(args[1:]))
+        with open(answer[0], 'rb') as image1:
+            bot.send_photo(message.chat.id, image1)
+        with open(answer[1], 'rb') as image2:
+            bot.send_photo(message.chat.id, image2)
+
+
+@bot.message_handler(commands=['describe_topic'])
+def bot_words(message):
+    args = message.text.split()
+    if len(args) >= 2:
+        answer = rbc_data.describe_topic(" ".join(args[1:]))
+        bot.send_message(message.chat.id, answer[0])
+        with open(answer[1], 'rb') as image1:
+            bot.send_photo(message.chat.id, image1)
+        with open(answer[2], 'rb') as image2:
+            bot.send_photo(message.chat.id, image2)
+
+
 @bot.message_handler()
 def repeat_all_messages(message):
     bot.send_message(message.chat.id, "kek\n" + message.text)

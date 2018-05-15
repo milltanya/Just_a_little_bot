@@ -1,9 +1,17 @@
+# -*- coding: utf-8 -*-
 import sqlite3
 import re
 import collections
+import matplotlib.pyplot
+import pandas
+import os
 
 
 def create_database():
+    os.makedirs('./images/lengths/docs', 0o777, True)
+    os.makedirs('./images/frequences/docs', 0o777, True)
+    os.makedirs('./images/lengths/topics', 0o777, True)
+    os.makedirs('./images/frequences/topics', 0o777, True)
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     cur.execute('''
@@ -82,6 +90,49 @@ def update_docs_in_topic(docs_in_topic):
     conn.close()
 
 
+def count_words(text, words, n):
+    for word in re.findall(r"\w+", text):
+        if len(word) > 1:
+            if len(word) > 3:
+                words[word[0].upper() + word[1:]] += n
+            elif word.isupper():
+                words[word] += n
+
+
+def count_lengths(words, lengths):
+    for word in words.keys():
+        length = len(word)
+        if length >= len(lengths):
+            lengths.extend([0] * (length - len(lengths) + 1))
+        lengths[length] += words[word]
+
+
+def describe_text(text, file_name):
+    words = collections.defaultdict(int)
+    lengths = []
+    frequences = [0] * 100
+    count_words(text, words, 1)
+    count_lengths(words, lengths)
+    total = sum(words.values())
+    for word in words.keys():
+        frequences[int(words[word] * 100 / total)] += words[word]
+    matplotlib.rc('font', family='Arial')
+    data_frame = pandas.DataFrame(lengths)
+    plot = data_frame.plot(kind='line', title='Длины слов')
+    plot.set_xlabel('Длина')
+    plot.set_ylabel('Количество слов')
+    matplotlib.pyplot.legend('')
+    matplotlib.pyplot.savefig('images/lengths/' + file_name + '.png')
+    matplotlib.pyplot.close()
+    data_frame = pandas.DataFrame(frequences[:10])
+    plot = data_frame.plot(kind='line', title='Частоты слов')
+    plot.set_xlabel('Частотв')
+    plot.set_ylabel('Количество слов')
+    matplotlib.pyplot.legend('')
+    matplotlib.pyplot.savefig('images/frequences/' + file_name + '.png')
+    matplotlib.pyplot.close()
+
+
 def update_topics(topics):
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
@@ -93,6 +144,18 @@ def update_topics(topics):
             '''.format(topic['url'], topic['title'], topic['description']))
         except sqlite3.IntegrityError:
             pass
+        docs_text = cur.execute('''
+                SELECT Document.text
+                FROM Topic
+                JOIN Topic_document
+                ON Topic.url = Topic_document.topic_url
+                JOIN Document
+                ON Topic_document.doc_url = Document.url
+            ''').fetchall()
+        text = ''
+        for item in docs_text:
+            text += item[0]
+        describe_text(text, 'topics/' + topic['title'])
     conn.commit()
     conn.close()
 
@@ -104,6 +167,7 @@ def update_documents(documents):
     for document in documents:
         if document['url'] not in existing_url:
             existing_url.append(document['url'])
+            describe_text(document['text'], 'docs/' + document['title'])
             try:
                 cur.execute('''
                     INSERT INTO Document (url, title, time, text)
@@ -203,15 +267,6 @@ def doc(title):
     return text
 
 
-def count_words(text, words, n):
-    for word in re.findall(r"\w+", text):
-        if len(word) > 1:
-            if len(word) > 3:
-                words[word[0].upper() + word[1:]] += n
-            elif word.isupper():
-                words[word] += n
-
-
 def words(topic_title):
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
@@ -261,8 +316,47 @@ def words(topic_title):
 
 
 def describe_doc(doc_title):
-    pass
+    conn = sqlite3.connect('rbc.db')
+    cur = conn.cursor()
+    answer = None
+    if cur.execute('''
+        SELECT *
+        FROM Document
+        WHERE title = "{}"
+    '''.format(doc_title)).fetchall() != []:
+         answer = ['images/lengths/docs/' + doc_title + '.png', 'images/frequences/docs/' + doc_title + '.png']
+    cur.close()
+    return answer
+
+
+if __name__ == '__main__':
+    describe_doc('СМИ сообщили о сотрудничестве Скрипаля с чешскими спецслужбами')
 
 
 def describe_topic(topic_title):
-    pass
+    conn = sqlite3.connect('rbc.db')
+    cur = conn.cursor()
+    answer = None
+    if cur.execute('''
+            SELECT *
+            FROM Topic
+            WHERE title = "{}"
+    '''.format(topic_title)).fetchall() != []:
+        docs_text = cur.execute('''
+                SELECT Document.text
+                FROM (SELECT url
+                FROM Topic
+                WHERE title = "{}") AS A
+                JOIN Topic_document
+                ON A.url = Topic_document.topic_url
+                JOIN Document
+                ON Topic_document.doc_url = Document.url
+            '''.format(topic_title)).fetchall()[:5]
+        docs_count = len(docs_text)
+        docs_avg_length = 0
+        for text in docs_text:
+            docs_avg_length += len(re.findall(r"\w+", text))
+        docs_avg_length /= docs_count
+        answer = ["Количество документов в теме\n" + str(docs_count) + '\n\nСредняя длина документа\n' + str(docs_avg_length), 'images/lengths/topics/' + topic_title + '.png', 'images/frequences/topics/' + topic_title + '.png']
+    conn.close()
+    return answer

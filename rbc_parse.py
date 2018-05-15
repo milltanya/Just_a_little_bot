@@ -63,11 +63,11 @@ def parse_article(url):
     time = string_to_time(
         page.find('span', {'class': 'article__header__date'}).text.strip())
     text = ""
-    for par in page.find('div', {'class': 'article__text'}).find_all('p'):
+    for par in page.find('div', {'class': 'article__text'}).find_all('p')[:10]:
         if par.find('div') is None and par.find('script') is None:
             text += par.text.strip() + '\n'
     tags = {}
-    for tag in page.find_all('a', {'class': 'article__tags__link'}):
+    for tag in page.find_all('a', {'class': 'article__tags__link'})[:10]:
         tag_title = tag.text.strip().replace('"', '')
         tag_link = simplify_url(tag.get('href'))
         tags.update({tag_title: tag_link})
@@ -77,7 +77,7 @@ def parse_article(url):
 def parse_docs_in_topic(url):
     page = make_soup(url)
     docs = []
-    for document in page.find_all('a', {'class': 'item__link no-injects js-yandex-counter'}):
+    for document in page.find_all('a', {'class': 'item__link no-injects js-yandex-counter'})[:10]:
         docs.append(simplify_url(document.get('href')))
     return docs
 
