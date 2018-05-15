@@ -10,7 +10,6 @@ def make_soup(url):
 
 
 def simplify_url(url):
-    url = url.replace('https://', '')
     index = url.rfind('?from=')
     if index > 0:
         url = url[:index]
