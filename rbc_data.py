@@ -109,6 +109,16 @@ def count_lengths(words, lengths):
         lengths[length] += words[word]
 
 
+def make_image(data, plot_title, xlabel, ylabel, file_name):
+    data_frame = pandas.DataFrame(data)
+    plot = data_frame.plot(kind='line', title=plot_title)
+    plot.set_xlabel(xlabel)
+    plot.set_ylabel(ylabel)
+    matplotlib.pyplot.legend('')
+    matplotlib.pyplot.savefig(file_name)
+    matplotlib.pyplot.close()
+
+
 def describe_text(text, file_name):
     words = collections.defaultdict(int)
     lengths = []
@@ -118,26 +128,8 @@ def describe_text(text, file_name):
     total = sum(words.values())
     for word in words.keys():
         frequences[int(words[word] * 100 / total)] += words[word]
-    matplotlib.rc('font', family='Arial')
-    try:
-        data_frame = pandas.DataFrame(lengths)
-        plot = data_frame.plot(kind='line', title='Длины слов')
-        plot.set_xlabel('Длина')
-        plot.set_ylabel('Количество слов')
-        matplotlib.pyplot.legend('')
-        matplotlib.pyplot.savefig('images/lengths/' + file_name + '.png')
-        matplotlib.pyplot.close()
-    except TypeError:
-        print("TypeError")
-        print(text)
-        print(lengths)
-    data_frame = pandas.DataFrame(frequences[:10])
-    plot = data_frame.plot(kind='line', title='Частоты слов')
-    plot.set_xlabel('Частотв')
-    plot.set_ylabel('Количество слов')
-    matplotlib.pyplot.legend('')
-    matplotlib.pyplot.savefig('images/frequences/' + file_name + '.png')
-    matplotlib.pyplot.close()
+    make_image(lengths, 'Длины слов', 'Длина', 'Количество слов', 'images/lengths/' + file_name)
+    make_image(frequences[:10], 'Частоты слов', 'Частота', 'Количество слов', 'images/frequences/' + file_name)
 
 
 def update_images():
@@ -148,7 +140,7 @@ def update_images():
         FROM Document
     ''').fetchall()
     for doc in docs:
-        describe_text(doc[1], 'docs/' + doc[0])
+        describe_text(doc[1], 'docs/' + doc[0] + '.png')
     topics = cur.execute('''
         SELECT title, url
         FROM Topic
@@ -167,7 +159,7 @@ def update_images():
         text = ''
         for item in docs_text:
             text += item[0]
-        describe_text(text, 'topics/' + topic[0])
+        describe_text(text, 'topics/' + topic[0] + '.png')
 
 
 def update_topics(topics):
@@ -377,6 +369,6 @@ def describe_topic(topic_title):
         for text in docs_text:
             docs_avg_length += len(re.findall(r"\w+", text[0]))
         docs_avg_length /= docs_count
-        answer = ["Количество документов в теме " + str(docs_count) + '\n\nСредняя длина документа ' + str(int(docs_avg_length)) + ' слова', 'images/lengths/topics/' + topic_title + '.png', 'images/frequences/topics/' + topic_title + '.png']
+        answer = ["Количество документов в теме " + str(docs_count) + '\n\nСреднее количество слов в документе ' + str(int(docs_avg_length)), 'images/lengths/topics/' + topic_title + '.png', 'images/frequences/topics/' + topic_title + '.png']
     conn.close()
     return answer
