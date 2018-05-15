@@ -148,10 +148,10 @@ def update_images():
     for doc in docs:
         describe_text(doc[1], 'docs/' + doc[0])
     topics = cur.execute('''
-        SELECT url
+        SELECT title, url
         FROM Topic
     ''').fetchall()
-    for topic_url in topics:
+    for topic in topics:
         docs_text = cur.execute('''
                 SELECT Document.text
                 FROM (
@@ -161,11 +161,11 @@ def update_images():
                     ) AS A
                 JOIN Document
                 ON A.doc_url = Document.url
-            '''.format(topic_url)).fetchall()
+            '''.format(topic[1])).fetchall()
         text = ''
         for item in docs_text:
             text += item[0]
-        describe_text(text, 'topics/' + topic['title'])
+        describe_text(text, 'topics/' + topic[0])
 
 
 def update_topics(topics):
