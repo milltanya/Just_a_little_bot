@@ -42,35 +42,47 @@ def bot_new_docs(message):
 def bot_new_docs(message):
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
-        bot.send_message(message.chat.id, rbc_data.new_docs(int(args[1])))
+        if 0 < args[1] <= 30:
+            bot.send_message(message.chat.id, rbc_data.new_docs(int(args[1])))
+        else:
+            bot.send_message(message.chat.id, "Число должно быть од 1 до 30")
 
 
 @bot.message_handler(commands=['new_topics'])
 def bot_new_topics(message):
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
-        bot.send_message(message.chat.id, rbc_data.new_topics(int(args[1])))
+        if 0 < args[1] <= 30:
+            bot.send_message(message.chat.id, rbc_data.new_topics(int(args[1])))
+        else:
+            bot.send_message(message.chat.id, "Число должно быть од 1 до 30")
 
 
 @bot.message_handler(commands=['topic'])
 def bot_topic(message):
     args = message.text.split()
     if len(args) >= 2:
-        bot.send_message(message.chat.id, rbc_data.topic(" ".join(args[1:])))
+        answer = rbc_data.topic(" ".join(args[1:]))
+        if answer is not None:
+            bot.send_message(message.chat.id, answer)
 
 
 @bot.message_handler(commands=['doc'])
 def bot_topic(message):
     args = message.text.split()
     if len(args) >= 2:
-        bot.send_message(message.chat.id, rbc_data.doc(" ".join(args[1:])))
+        answer = rbc_data.doc(" ".join(args[1:]))
+        if answer is not None:
+            bot.send_message(message.chat.id, answer)
 
 
 @bot.message_handler(commands=['words'])
 def bot_words(message):
     args = message.text.split()
     if len(args) >= 2:
-        bot.send_message(message.chat.id, rbc_data.words(" ".join(args[1:])))
+        answer = rbc_data.words(" ".join(args[1:]))
+        if answer is not None:
+            bot.send_message(message.chat.id, answer)
 
 
 @bot.message_handler(commands=['describe_doc'])
@@ -78,10 +90,11 @@ def bot_describe_doc(message):
     args = message.text.split()
     if len(args) >= 2:
         answer = rbc_data.describe_doc(" ".join(args[1:]))
-        with open(answer[0], 'rb') as image1:
-            bot.send_photo(message.chat.id, image1)
-        with open(answer[1], 'rb') as image2:
-            bot.send_photo(message.chat.id, image2)
+        if answer is not None:
+            with open(answer[0], 'rb') as image1:
+                bot.send_photo(message.chat.id, image1)
+            with open(answer[1], 'rb') as image2:
+                bot.send_photo(message.chat.id, image2)
 
 
 @bot.message_handler(commands=['describe_topic'])
@@ -89,16 +102,17 @@ def bot_describe_topic(message):
     args = message.text.split()
     if len(args) >= 2:
         answer = rbc_data.describe_topic(" ".join(args[1:]))
-        bot.send_message(message.chat.id, answer[0])
-        with open(answer[1], 'rb') as image1:
-            bot.send_photo(message.chat.id, image1)
-        with open(answer[2], 'rb') as image2:
-            bot.send_photo(message.chat.id, image2)
+        if answer is not None:
+            bot.send_message(message.chat.id, answer[0])
+            with open(answer[1], 'rb') as image1:
+                bot.send_photo(message.chat.id, image1)
+            with open(answer[2], 'rb') as image2:
+                bot.send_photo(message.chat.id, image2)
 
 
 @bot.message_handler()
 def repeat_all_messages(message):
-    bot.send_message(message.chat.id, "kek\n" + message.text)
+    bot.send_message(message.chat.id, "Введите правильную команду\n" + message.text)
 
 
 if __name__ == '__main__':

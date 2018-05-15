@@ -354,35 +354,32 @@ def describe_doc(doc_title):
 
 
 def describe_topic(topic_title):
-    try:
-        conn = sqlite3.connect('rbc.db')
-        cur = conn.cursor()
-        answer = None
-        if cur.execute('''
-                SELECT *
+    conn = sqlite3.connect('rbc.db')
+    cur = conn.cursor()
+    answer = None
+    if cur.execute('''
+            SELECT *
+            FROM Topic
+            WHERE title = "{}"
+    '''.format(topic_title)).fetchall() != []:
+        docs_text = cur.execute('''
+                SELECT Document.text
+                FROM (SELECT url
                 FROM Topic
-                WHERE title = "{}"
-        '''.format(topic_title)).fetchall() != []:
-            docs_text = cur.execute('''
-                    SELECT Document.text
-                    FROM (SELECT url
-                    FROM Topic
-                    WHERE title = "{}") AS A
-                    JOIN Topic_document
-                    ON A.url = Topic_document.topic_url
-                    JOIN Document
-                    ON Topic_document.doc_url = Document.url
-                '''.format(topic_title)).fetchall()
-            docs_count = len(docs_text)
-            docs_avg_length = 0
-            for text in docs_text:
-                docs_avg_length += len(re.findall(r"\w+", text))
-            docs_avg_length /= docs_count
-            answer = ["Количество документов в теме\n" + str(docs_count) + '\n\nСредняя длина документа\n' + str(docs_avg_length), 'images/lengths/topics/' + topic_title + '.png', 'images/frequences/topics/' + topic_title + '.png']
-        conn.close()
-        return answer
-    except Exception as error:
-        fout = open('error.txt', 'w')
-        print(error.__str__(), file=fout)
+                WHERE title = "{}") AS A
+                JOIN Topic_document
+                ON A.url = Topic_document.topic_url
+                JOIN Document
+                ON Topic_document.doc_url = Document.url
+            '''.format(topic_title)).fetchall()
+        docs_count = len(docs_text)
+        docs_avg_length = 0
+        for text in docs_text:
+            docs_avg_length += len(re.findall(r"\w+", text[0]))
+        docs_avg_length /= docs_count
+        answer = ["Количество документов в теме " + str(docs_count) + '\n\nСредняя длина документа ' + str(int(docs_avg_length)) + ' слова', 'images/lengths/topics/' + topic_title + '.png', 'images/frequences/topics/' + topic_title + '.png']
+    conn.close()
+    return answer
 
 
+print(describe_topic("Новое правительство"))
