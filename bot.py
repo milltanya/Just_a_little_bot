@@ -80,17 +80,17 @@ def repeat_all_messages(message):
 
 if __name__ == '__main__':
 
-    class Update:
-        def __call__(self):
-            rbc_update.updating()
-
     class Bot:
         def __call__(self):
             bot.polling(none_stop=True)
 
-    process_update = Process(target=Update())
+    class Update:
+        def __call__(self):
+            rbc_update.updating()
+
     process_bot = Process(target=Bot())
-    process_update.start()
+    process_update = Process(target=Update())
     process_bot.start()
-    process_update.join()
+    process_update.start()
     process_bot.join()
+    process_update.join()
