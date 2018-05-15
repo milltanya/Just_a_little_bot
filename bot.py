@@ -81,6 +81,7 @@ def repeat_all_messages(message):
 if __name__ == '__main__':
     rbc_data.create_database()
     rbc_update.update()
+    print("База обновлена, бот готов к работе")
 
     # class Bot:
     #     def __call__(self):
