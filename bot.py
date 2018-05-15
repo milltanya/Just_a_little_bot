@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import telebot
-import rbcapi
-
+import rbc_update
+import rbc_data
+from multiprocessing import Process
 token = '570771300:AAGMX2JIFGv-2gglbJZDMj0xN0MFjTjy0Es'
 bot = telebot.TeleBot(token)
-rbcapi.database.create_database()
 
 
 @bot.message_handler(commands=['help', 'start'])
@@ -32,7 +32,7 @@ def bot_help(message):
 
 @bot.message_handler(commands=['update'])
 def bot_new_docs(message):
-    rbcapi.update()
+    rbc_update.update()
     args = message.text.split()
     if len(args) == 1:
         bot.send_message(message.chat.id, "База обновлена")
@@ -42,28 +42,35 @@ def bot_new_docs(message):
 def bot_new_docs(message):
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
-        bot.send_message(message.chat.id, rbcapi.new_docs(int(args[1])))
+        bot.send_message(message.chat.id, rbc_data.new_docs(int(args[1])))
 
 
 @bot.message_handler(commands=['new_topics'])
 def bot_new_topics(message):
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
-        bot.send_message(message.chat.id, rbcapi.new_topics(int(args[1])))
+        bot.send_message(message.chat.id, rbc_data.new_topics(int(args[1])))
 
 
 @bot.message_handler(commands=['topic'])
 def bot_topic(message):
     args = message.text.split()
     if len(args) >= 2:
-        bot.send_message(message.chat.id, rbcapi.topic(" ".join(args[1:])))
+        bot.send_message(message.chat.id, rbc_data.topic(" ".join(args[1:])))
 
 
 @bot.message_handler(commands=['doc'])
 def bot_topic(message):
     args = message.text.split()
     if len(args) >= 2:
-        bot.send_message(message.chat.id, rbcapi.doc(" ".join(args[1:])))
+        bot.send_message(message.chat.id, rbc_data.doc(" ".join(args[1:])))
+
+
+@bot.message_handler(commands=['words'])
+def bot_words(message):
+    args = message.text.split()
+    if len(args) >= 2:
+        bot.send_message(message.chat.id, rbc_data.words(" ".join(args[1:])))
 
 
 @bot.message_handler()
@@ -72,4 +79,18 @@ def repeat_all_messages(message):
 
 
 if __name__ == '__main__':
-    bot.polling(none_stop=True)
+
+    class Update:
+        def __call__(self):
+            rbc_update.updating()
+
+    class Bot:
+        def __call__(self):
+            bot.polling(none_stop=True)
+
+    process_update = Process(target=Update())
+    process_bot = Process(target=Bot())
+    process_update.start()
+    process_bot.start()
+    process_update.join()
+    process_bot.join()
