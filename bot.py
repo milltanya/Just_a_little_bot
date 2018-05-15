@@ -42,7 +42,7 @@ def bot_new_docs(message):
 def bot_new_docs(message):
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
-        if 0 < args[1] <= 30:
+        if 0 < int(args[1]) <= 30:
             bot.send_message(message.chat.id, rbc_data.new_docs(int(args[1])))
         else:
             bot.send_message(message.chat.id, "Число должно быть од 1 до 30")
@@ -52,7 +52,7 @@ def bot_new_docs(message):
 def bot_new_topics(message):
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
-        if 0 < args[1] <= 30:
+        if 0 < int(args[1]) <= 30:
             bot.send_message(message.chat.id, rbc_data.new_topics(int(args[1])))
         else:
             bot.send_message(message.chat.id, "Число должно быть од 1 до 30")
