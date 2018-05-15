@@ -127,22 +127,8 @@ def repeat_all_messages(message):
 
 if __name__ == '__main__':
     rbc_data.create_database()
-    rbc_update.update()
-    print("База обновлена, бот готов к работе")
 
-    # class Bot:
-    #     def __call__(self):
-    #         bot.polling(none_stop=True)
-    #
-    # class Update:
-    #     def __call__(self):
-    #         rbc_update.updating()
-    #
-    # process_bot = Process(target=Bot())
-    # process_update = Process(target=Update())
-    # process_bot.start()
-    # process_update.start()
-    # process_bot.join()
-    # process_update.join()
-
-    bot.polling(none_stop=True)
+    process_bot = Process(target=bot.polling(none_stop=True))
+    process_update = Process(target=rbc_update.updating())
+    process_bot.start()
+    process_update.start()
