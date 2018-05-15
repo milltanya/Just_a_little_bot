@@ -79,6 +79,7 @@ def repeat_all_messages(message):
 
 
 if __name__ == '__main__':
+    rbc_data.create_database()
     rbc_update.update()
     
     class Bot:

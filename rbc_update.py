@@ -29,12 +29,8 @@ def update():
 
 
 def updating():
-    print("Updating")
-    rbc_data.create_database()
     while True:
-        print("Update")
         update()
-        print("Updated")
         time.sleep(600)
 
 
