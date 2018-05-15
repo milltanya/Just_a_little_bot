@@ -125,10 +125,13 @@ def repeat_all_messages(message):
     bot.send_message(message.chat.id, "Введите правильную команду\n" + message.text)
 
 
+def bot_enable():
+    bot.polling(none_stop=True)
+
 if __name__ == '__main__':
     rbc_data.create_database()
 
-    process_bot = Process(target=bot.polling(none_stop=True))
-    process_update = Process(target=rbc_update.updating())
+    process_bot = Process(target=bot_enable)
+    process_update = Process(target=rbc_update.updating)
     process_bot.start()
     process_update.start()
