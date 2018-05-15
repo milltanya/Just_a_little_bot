@@ -79,7 +79,8 @@ def repeat_all_messages(message):
 
 
 if __name__ == '__main__':
-
+    rbc_update.update()
+    
     class Bot:
         def __call__(self):
             bot.polling(none_stop=True)
