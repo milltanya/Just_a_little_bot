@@ -2,6 +2,8 @@
 import sqlite3
 import re
 import collections
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot
 import pandas
 import os

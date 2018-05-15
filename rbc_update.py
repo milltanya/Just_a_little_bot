@@ -32,7 +32,7 @@ def update():
 def updating():
     while True:
         update()
-        time.sleep(600)
+        time.sleep(1800)
 
 
 if __name__ == '__main__':
