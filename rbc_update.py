@@ -26,6 +26,7 @@ def update():
     rbc_data.update_topics(new_topics)
     rbc_data.update_documents(new_documents)
     rbc_data.update_docs_in_topic(new_docs_in_topic)
+    rbc_data.update_images()
 
 
 def updating():

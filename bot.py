@@ -74,7 +74,7 @@ def bot_words(message):
 
 
 @bot.message_handler(commands=['describe_doc'])
-def bot_words(message):
+def bot_describe_doc(message):
     args = message.text.split()
     if len(args) >= 2:
         answer = rbc_data.describe_doc(" ".join(args[1:]))
@@ -85,7 +85,7 @@ def bot_words(message):
 
 
 @bot.message_handler(commands=['describe_topic'])
-def bot_words(message):
+def bot_describe_topic(message):
     args = message.text.split()
     if len(args) >= 2:
         answer = rbc_data.describe_topic(" ".join(args[1:]))

@@ -117,13 +117,18 @@ def describe_text(text, file_name):
     for word in words.keys():
         frequences[int(words[word] * 100 / total)] += words[word]
     matplotlib.rc('font', family='Arial')
-    data_frame = pandas.DataFrame(lengths)
-    plot = data_frame.plot(kind='line', title='Длины слов')
-    plot.set_xlabel('Длина')
-    plot.set_ylabel('Количество слов')
-    matplotlib.pyplot.legend('')
-    matplotlib.pyplot.savefig('images/lengths/' + file_name + '.png')
-    matplotlib.pyplot.close()
+    try:
+        data_frame = pandas.DataFrame(lengths)
+        plot = data_frame.plot(kind='line', title='Длины слов')
+        plot.set_xlabel('Длина')
+        plot.set_ylabel('Количество слов')
+        matplotlib.pyplot.legend('')
+        matplotlib.pyplot.savefig('images/lengths/' + file_name + '.png')
+        matplotlib.pyplot.close()
+    except TypeError:
+        print("TypeError")
+        print(text)
+        print(lengths)
     data_frame = pandas.DataFrame(frequences[:10])
     plot = data_frame.plot(kind='line', title='Частоты слов')
     plot.set_xlabel('Частотв')
@@ -131,6 +136,36 @@ def describe_text(text, file_name):
     matplotlib.pyplot.legend('')
     matplotlib.pyplot.savefig('images/frequences/' + file_name + '.png')
     matplotlib.pyplot.close()
+
+
+def update_images():
+    conn = sqlite3.connect('rbc.db')
+    cur = conn.cursor()
+    docs = cur.execute('''
+        SELECT title, text
+        FROM Document
+    ''').fetchall()
+    for doc in docs:
+        describe_text(doc[1], 'docs/' + doc[0])
+    topics = cur.execute('''
+        SELECT url
+        FROM Topic
+    ''').fetchall()
+    for topic_url in topics:
+        docs_text = cur.execute('''
+                SELECT Document.text
+                FROM (
+                    SELECT doc_url
+                    FROM Topic_document
+                    WHERE topic_url = "{}"
+                    ) AS A
+                JOIN Document
+                ON A.doc_url = Document.url
+            '''.format(topic_url)).fetchall()
+        text = ''
+        for item in docs_text:
+            text += item[0]
+        describe_text(text, 'topics/' + topic['title'])
 
 
 def update_topics(topics):
@@ -144,18 +179,6 @@ def update_topics(topics):
             '''.format(topic['url'], topic['title'], topic['description']))
         except sqlite3.IntegrityError:
             pass
-        docs_text = cur.execute('''
-                SELECT Document.text
-                FROM Topic
-                JOIN Topic_document
-                ON Topic.url = Topic_document.topic_url
-                JOIN Document
-                ON Topic_document.doc_url = Document.url
-            ''').fetchall()
-        text = ''
-        for item in docs_text:
-            text += item[0]
-        describe_text(text, 'topics/' + topic['title'])
     conn.commit()
     conn.close()
 
@@ -167,7 +190,6 @@ def update_documents(documents):
     for document in documents:
         if document['url'] not in existing_url:
             existing_url.append(document['url'])
-            describe_text(document['text'], 'docs/' + document['title'])
             try:
                 cur.execute('''
                     INSERT INTO Document (url, title, time, text)
@@ -327,10 +349,6 @@ def describe_doc(doc_title):
          answer = ['images/lengths/docs/' + doc_title + '.png', 'images/frequences/docs/' + doc_title + '.png']
     cur.close()
     return answer
-
-
-if __name__ == '__main__':
-    describe_doc('СМИ сообщили о сотрудничестве Скрипаля с чешскими спецслужбами')
 
 
 def describe_topic(topic_title):
