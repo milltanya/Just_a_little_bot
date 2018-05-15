@@ -27,6 +27,7 @@ def update():
     rbc_data.update_documents(new_documents)
     rbc_data.update_docs_in_topic(new_docs_in_topic)
     rbc_data.update_images()
+    print("База обновлена")
 
 
 def updating():

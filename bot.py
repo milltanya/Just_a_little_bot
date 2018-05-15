@@ -2,7 +2,6 @@
 import telebot
 import rbc_update
 import rbc_data
-from multiprocessing import Process
 token = '570771300:AAGMX2JIFGv-2gglbJZDMj0xN0MFjTjy0Es'
 bot = telebot.TeleBot(token)
 
@@ -125,13 +124,8 @@ def repeat_all_messages(message):
     bot.send_message(message.chat.id, "Введите правильную команду\n" + message.text)
 
 
-def bot_enable():
-    bot.polling(none_stop=True)
-
 if __name__ == '__main__':
     rbc_data.create_database()
-
-    process_bot = Process(target=bot_enable)
-    process_update = Process(target=rbc_update.updating)
-    process_bot.start()
-    process_update.start()
+    rbc_update.update()
+    bot.polling(none_stop=True)
+    rbc_update.updating()
