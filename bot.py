@@ -65,6 +65,8 @@ def bot_topic(message):
         answer = rbc_data.topic(" ".join(args[1:]))
         if answer is not None:
             bot.send_message(message.chat.id, answer)
+        else:
+            bot.send_message(message.chat.id, "Тема не найдена")
 
 
 @bot.message_handler(commands=['doc'])
@@ -74,6 +76,8 @@ def bot_topic(message):
         answer = rbc_data.doc(" ".join(args[1:]))
         if answer is not None:
             bot.send_message(message.chat.id, answer)
+        else:
+            bot.send_message(message.chat.id, "Документ не найден")
 
 
 @bot.message_handler(commands=['words'])
@@ -83,6 +87,8 @@ def bot_words(message):
         answer = rbc_data.words(" ".join(args[1:]))
         if answer is not None:
             bot.send_message(message.chat.id, answer)
+        else:
+            bot.send_message(message.chat.id, "Тема не найдена")
 
 
 @bot.message_handler(commands=['describe_doc'])
@@ -95,6 +101,8 @@ def bot_describe_doc(message):
                 bot.send_photo(message.chat.id, image1)
             with open(answer[1], 'rb') as image2:
                 bot.send_photo(message.chat.id, image2)
+        else:
+            bot.send_message(message.chat.id, "Документ не найден")
 
 
 @bot.message_handler(commands=['describe_topic'])
@@ -108,6 +116,8 @@ def bot_describe_topic(message):
                 bot.send_photo(message.chat.id, image1)
             with open(answer[2], 'rb') as image2:
                 bot.send_photo(message.chat.id, image2)
+        else:
+            bot.send_message(message.chat.id, "Тема не найдена")
 
 
 @bot.message_handler()
