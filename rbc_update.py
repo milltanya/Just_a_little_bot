@@ -37,4 +37,5 @@ def updating():
 
 
 if __name__ == '__main__':
+    rbc_data.create_database()
     updating()

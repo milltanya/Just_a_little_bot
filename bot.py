@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import telebot
-import rbc_update
 import rbc_data
 token = '570771300:AAGMX2JIFGv-2gglbJZDMj0xN0MFjTjy0Es'
 bot = telebot.TeleBot(token)
@@ -27,14 +26,6 @@ def bot_help(message):
                 'распределение частот слов в рамках всей темы, ' \
                 'распределение длин слов в рамках всей темы)'
     bot.send_message(message.chat.id, help_text)
-
-
-@bot.message_handler(commands=['update'])
-def bot_new_docs(message):
-    rbc_update.update()
-    args = message.text.split()
-    if len(args) == 1:
-        bot.send_message(message.chat.id, "База обновлена")
 
 
 @bot.message_handler(commands=['new_docs'])
@@ -125,7 +116,4 @@ def repeat_all_messages(message):
 
 
 if __name__ == '__main__':
-    rbc_data.create_database()
-    rbc_update.update()
     bot.polling(none_stop=True)
-    rbc_update.updating()
