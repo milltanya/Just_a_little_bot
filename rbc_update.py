@@ -1,6 +1,7 @@
 import rbc_data
 import rbc_parse
 import time
+from datetime import datetime
 
 
 def update():
@@ -27,12 +28,12 @@ def update():
     rbc_data.update_documents(new_documents)
     rbc_data.update_docs_in_topic(new_docs_in_topic)
     rbc_data.update_images()
-    print("База обновлена")
 
 
 def updating():
     while True:
         update()
+        print(datetime.now().strftime('%Y.%m.%d %H:%M'))
         time.sleep(1800)
 
 
