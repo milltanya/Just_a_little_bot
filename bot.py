@@ -7,6 +7,11 @@ bot = telebot.TeleBot(token)
 
 @bot.message_handler(commands=['help', 'start'])
 def bot_help(message):
+    """
+    Выводит справку по боту
+    :param message: сообщение
+    :return: None
+    """
     help_text = 'Привет! Ты используешь бот Just_a_little_bot, который ' \
                 'позволяет тебе получать самые актуальные новости с rbc.ru.\n' \
                 'Вот что умееет бот:\n' \
@@ -30,26 +35,45 @@ def bot_help(message):
 
 @bot.message_handler(commands=['new_docs'])
 def bot_new_docs(message):
+    """
+    Выводит N последних документов
+    :param message: сообщение
+    :return: None
+    """
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
-        if 0 < int(args[1]) <= 30:
-            bot.send_message(message.chat.id, rbc_data.new_docs(int(args[1])))
+        if 0 < int(args[1]):
+            docs = rbc_data.new_docs(int(args[1]))
+            for i in range(len(docs) / 10):
+                bot.send_message(message.chat.id, "\n\n".join(docs[i*10: i*10 + 10]))
         else:
-            bot.send_message(message.chat.id, "Число должно быть од 1 до 30")
+            bot.send_message(message.chat.id, "Число должно быть больше нуля")
 
 
 @bot.message_handler(commands=['new_topics'])
 def bot_new_topics(message):
+    """
+    Выводит N последних тем
+    :param message: сообщение
+    :return: None
+    """
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
-        if 0 < int(args[1]) <= 30:
-            bot.send_message(message.chat.id, rbc_data.new_topics(int(args[1])))
+        if 0 < int(args[1]):
+            topics = rbc_data.new_topics(int(args[1]))
+            for i in range(len(topics) / 10):
+                bot.send_message(message.chat.id, "\n\n".join(topics[i*10: i*10 + 10]))
         else:
-            bot.send_message(message.chat.id, "Число должно быть од 1 до 30")
+            bot.send_message(message.chat.id, "Число должно быть больше нуля")
 
 
 @bot.message_handler(commands=['topic'])
 def bot_topic(message):
+    """
+    Выводин информацию о теме
+    :param message: сообщение
+    :return: None
+    """
     args = message.text.split()
     if len(args) >= 2:
         answer = rbc_data.topic(" ".join(args[1:]))
@@ -60,7 +84,12 @@ def bot_topic(message):
 
 
 @bot.message_handler(commands=['doc'])
-def bot_topic(message):
+def bot_doc(message):
+    """
+    Выводит информацию о документе
+    :param message: сообщение
+    :return: None
+    """
     args = message.text.split()
     if len(args) >= 2:
         answer = rbc_data.doc(" ".join(args[1:]))
@@ -72,6 +101,11 @@ def bot_topic(message):
 
 @bot.message_handler(commands=['words'])
 def bot_words(message):
+    """
+    Выводит пять самых значимых слов для темы
+    :param message: сообщение
+    :return: None
+    """
     args = message.text.split()
     if len(args) >= 2:
         answer = rbc_data.words(" ".join(args[1:]))
@@ -83,6 +117,11 @@ def bot_words(message):
 
 @bot.message_handler(commands=['describe_doc'])
 def bot_describe_doc(message):
+    """
+    Отправляет изображения графиков для документа
+    :param message: сообщение
+    :return: None
+    """
     args = message.text.split()
     if len(args) >= 2:
         answer = rbc_data.describe_doc(" ".join(args[1:]))
@@ -97,6 +136,11 @@ def bot_describe_doc(message):
 
 @bot.message_handler(commands=['describe_topic'])
 def bot_describe_topic(message):
+    """
+    Выводит колисечтво документов в теме, среднюю длину документа и отправляет изображения графиков для темы
+    :param message: сообщение
+    :return: None
+    """
     args = message.text.split()
     if len(args) >= 2:
         answer = rbc_data.describe_topic(" ".join(args[1:]))
@@ -111,8 +155,13 @@ def bot_describe_topic(message):
 
 
 @bot.message_handler()
-def repeat_all_messages(message):
-    bot.send_message(message.chat.id, "Введите правильную команду\n" + message.text)
+def bot_wrong_commands(message):
+    """
+    Отвечает на неправильные команды
+    :param message: сообщение
+    :return: None
+    """
+    bot.send_message(message.chat.id, "Введите правильную команду")
 
 
 if __name__ == '__main__':

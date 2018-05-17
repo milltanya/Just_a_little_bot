@@ -10,11 +10,13 @@ import os
 
 
 def create_database():
-    os.makedirs('./images/lengths/docs', 0o777, True)
-    os.makedirs('./images/frequences/docs', 0o777, True)
-    os.makedirs('./images/lengths/topics', 0o777, True)
-    os.makedirs('./images/frequences/topics', 0o777, True)
-    conn = sqlite3.connect('rbc.db')
+    """
+    Создает базу данных и директории, в которых будут храниться изображения
+    :return: None
+    """
+    os.makedirs('data/images/docs', 0o777, True)
+    os.makedirs('data/images/topics', 0o777, True)
+    conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
     cur.execute('''
         CREATE TABLE IF NOT EXISTS Document (
@@ -55,7 +57,11 @@ def create_database():
 
 
 def get_existing_topics_url():
-    conn = sqlite3.connect('rbc.db')
+    """
+    Возвращает список адресов тем, которые уже есть в базе. Каждый элемент списка - список из одного элемента
+    :return: list
+    """
+    conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
     existing_url = cur.execute('''
         SELECT url
@@ -66,7 +72,11 @@ def get_existing_topics_url():
 
 
 def get_existing_docs_url():
-    conn = sqlite3.connect('rbc.db')
+    """
+    Возвращает список адресов документов, которые уже есть в базе. Каждый элемент списка - список из одного элемента
+    :return: list
+    """
+    conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
     existing_url = cur.execute('''
         SELECT url
@@ -77,22 +87,37 @@ def get_existing_docs_url():
 
 
 def update_docs_in_topic(docs_in_topic):
-    conn = sqlite3.connect('rbc.db')
+    """
+    Обновляет таблицу Topic_document значениями словаря docs_in_topic
+    :param docs_in_topic: словарь, сопоставляющий адресу темы список адресов документов (dict)
+    :return: None
+    """
+    conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
+    existing_docs_in_topics = cur.execute('''
+        SELECT *
+        FROM Topic_document
+    ''').fetchall()
     for topic in docs_in_topic.keys():
         for doc in docs_in_topic[topic]:
-            try:
+            if [topic, doc] not in existing_docs_in_topics:
+                existing_docs_in_topics.append([topic, doc])
                 cur.execute('''
                     INSERT INTO Topic_document (topic_url, Doc_url)
                     VALUES ("{}", "{}")
                 '''.format(topic, doc))
-            except sqlite3.IntegrityError:
-                pass
     conn.commit()
     conn.close()
 
 
-def count_words(text, words, n):
+def count_words(text, words, n = 1):
+    """
+    Обновляет words количеством появлений каждого слова в тексте, умноженным на n
+    :param text: текст (string)
+    :param words: словарь слов и частот (collections.defaultdict(int))
+    :param n: коэффициент (int, по умолчанию 1)
+    :return: None
+    """
     for word in re.findall(r"\w+", text):
         if len(word) > 1:
             if len(word) > 3:
@@ -102,6 +127,12 @@ def count_words(text, words, n):
 
 
 def count_lengths(words, lengths):
+    """
+    Обновляет lengths количеством появлений слов разной длины в словаре words
+    :param words: словарь слов и частот (collections.defaultdict(int))
+    :param lengths: список частот слов длины, равной индексу (дist)
+    :return:
+    """
     for word in words.keys():
         length = len(word)
         if length >= len(lengths):
@@ -110,16 +141,31 @@ def count_lengths(words, lengths):
 
 
 def make_image(data, plot_title, xlabel, ylabel, file_name):
+    """
+    Делает изображение графика по указанным данным
+    :param data: данные  (list)
+    :param plot_title: Название графика (string)
+    :param xlabel: Название оси абсцисс (string)
+    :param ylabel: Название оси ординат (string)
+    :param file_name: Название файла(string)
+    :return:
+    """
     data_frame = pandas.DataFrame(data)
     plot = data_frame.plot(kind='line', title=plot_title)
     plot.set_xlabel(xlabel)
     plot.set_ylabel(ylabel)
     matplotlib.pyplot.legend('')
-    matplotlib.pyplot.savefig(file_name)
+    matplotlib.pyplot.savefig(file_name + '.png')
     matplotlib.pyplot.close()
 
 
 def describe_text(text, file_name):
+    """
+    Делает графики частот и длин слов в тексте и записывает их в файл с данным названием
+    :param text: текст (string)
+    :param file_name: название файла (string)
+    :return: None
+    """
     words = collections.defaultdict(int)
     lengths = []
     frequences = [0] * 100
@@ -128,90 +174,112 @@ def describe_text(text, file_name):
     total = sum(words.values())
     for word in words.keys():
         frequences[int(words[word] * 100 / total)] += words[word]
-    make_image(lengths, 'Длины слов', 'Длина', 'Количество слов', 'images/lengths/' + file_name)
-    make_image(frequences[:10], 'Частоты слов', 'Частота', 'Количество слов', 'images/frequences/' + file_name)
+    make_image(lengths, 'Длины слов', 'Длина', 'Количество слов', 'images/' + file_name + ' L')
+    make_image(frequences[:10], 'Частоты слов', 'Частота', 'Количество слов', 'images/' + file_name + ' F')
 
 
 def update_images():
-    conn = sqlite3.connect('rbc.db')
+    """
+    Обновляет изображения графиков для базы
+    :return: None
+    """
+    conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
     docs = cur.execute('''
         SELECT title, text
         FROM Document
     ''').fetchall()
     for doc in docs:
-        describe_text(doc[1], 'docs/' + doc[0] + '.png')
+        if (doc[0] + ' L.png') not in os.listdir('data/images/docs'):
+            describe_text(doc[1], 'docs/' + doc[0])
     topics = cur.execute('''
         SELECT title, url
         FROM Topic
     ''').fetchall()
     for topic in topics:
-        docs_text = cur.execute('''
-                SELECT Document.text
-                FROM (
-                    SELECT doc_url
-                    FROM Topic_document
-                    WHERE topic_url = "{}"
-                    ) AS A
-                JOIN Document
-                ON A.doc_url = Document.url
-            '''.format(topic[1])).fetchall()
-        text = ''
-        for item in docs_text:
-            text += item[0]
-        describe_text(text, 'topics/' + topic[0] + '.png')
+        if (topic[0] + ' L.png') not in os.listdir('data/images/topics'):
+            docs_text = cur.execute('''
+                    SELECT Document.text
+                    FROM (
+                        SELECT doc_url
+                        FROM Topic_document
+                        WHERE topic_url = "{}"
+                        ) AS A
+                    JOIN Document
+                    ON A.doc_url = Document.url
+                '''.format(topic[1])).fetchall()
+            text = ''
+            for item in docs_text:
+                text += item[0]
+            describe_text(text, 'topics/' + topic[0])
 
 
-def update_topics(topics):
-    conn = sqlite3.connect('rbc.db')
+def update_topics(new_topics):
+    """
+    Обновляет базу тем значениями из списка словарей
+    :param new_topics: list
+    :return: None
+    """
+    conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
-    for topic in topics:
-        try:
-            cur.execute('''
-                INSERT INTO Topic (url, title, description)
-                VALUES ("{}", "{}", "{}")
-            '''.format(topic['url'], topic['title'], topic['description']))
-        except sqlite3.IntegrityError:
-            pass
+    for topic in new_topics:
+        cur.execute('''
+            INSERT INTO Topic (url, title, description)
+            VALUES ("{}", "{}", "{}")
+        '''.format(topic['url'], topic['title'], topic['description']))
     conn.commit()
     conn.close()
 
 
 def update_documents(documents):
-    conn = sqlite3.connect('rbc.db')
+    """
+    Обновляет базу документов значениями из списка словарей
+    :param documents: list
+    :return: None
+    """
+    conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
-    existing_url = get_existing_docs_url()
+    existing_tags = cur.execute('''
+                    SELECT title
+                    FROM Tag
+                ''').fetchall()
     for document in documents:
-        if document['url'] not in existing_url:
-            existing_url.append(document['url'])
-            try:
+        try:
+            cur.execute('''
+                INSERT INTO Document (url, title, time, text)
+                VALUES ("{}", "{}", "{}", "{}")
+            '''.format(document['url'], document['title'], document['time'], document['text']))
+        except sqlite3.OperationalError as error:
+            f = open('log/error.txt', 'a')
+            f.write('''
+                INSERT INTO Document (url, title, time, text)
+                VALUES ("{}", "{}", "{}", "{}")
+            '''.format(document['url'], document['title'], document['time'], document['text']))
+            f.write(error)
+            f.write('\n\n')
+            f.close()
+        for tag_title in document['tags'].keys():
+            if [tag_title] not in existing_tags:
+                existing_tags.append([tag_title])
                 cur.execute('''
-                    INSERT INTO Document (url, title, time, text)
-                    VALUES ("{}", "{}", "{}", "{}")
-                '''.format(document['url'], document['title'], document['time'], document['text']))
-            except sqlite3.IntegrityError:
-                pass
-            for tag_title in document['tags'].keys():
-                try:
-                    cur.execute('''
-                        INSERT INTO Tag (title, url)
-                        VALUES ("{}", "{}")
-                    '''.format(tag_title, document['tags'][tag_title]))
-                except sqlite3.IntegrityError:
-                    pass
-                try:
-                    cur.execute('''
-                        INSERT INTO Document_tag (doc_url, tag_title)
-                        VALUES ("{}", "{}")
-                    '''.format(document['url'], tag_title))
-                except sqlite3.IntegrityError:
-                    pass
+                    INSERT INTO Tag (title, url)
+                    VALUES ("{}", "{}")
+                '''.format(tag_title, document['tags'][tag_title]))
+            cur.execute('''
+                INSERT INTO Document_tag (doc_url, tag_title)
+                VALUES ("{}", "{}")
+            '''.format(document['url'], tag_title))
     conn.commit()
     conn.close()
 
 
 def new_docs(number):
-    conn = sqlite3.connect('rbc.db')
+    """
+    Возвращает указанное количество документов с самой поздней датой в виде списка строк из названия документа и его адреса
+    :param number: количество документов (int)
+    :return: list
+    """
+    conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
     docs = cur.execute('''
         SELECT title, url
@@ -219,14 +287,19 @@ def new_docs(number):
         ORDER BY time DESC
     ''').fetchall()[:number]
     conn.close()
-    answer = ""
+    answer = []
     for document in docs:
-        answer += document[0] + '\n' + document[1] + '\n\n'
+        answer.append(document[0] + '\n' + document[1])
     return answer
 
 
 def new_topics(number):
-    conn = sqlite3.connect('rbc.db')
+    """
+    Возвращает указанное количество тем с самой поздней датой в виде списка строк из названия темы и ее адреса
+    :param number: количество тем (int)
+    :return: list
+    """
+    conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
     topics = cur.execute('''
         SELECT Topic.title, Topic.url
@@ -239,51 +312,73 @@ def new_topics(number):
         ORDER BY MAX(Document.time) DESC
     ''').fetchall()[:number]
     conn.close()
-    answer = ""
+    answer = []
     for topic in topics:
-        answer += topic[0] + '\n' + topic[1] + '\n\n'
+        answer.append(topic[0] + '\n' + topic[1])
     return answer
 
 
 def topic(title):
-    conn = sqlite3.connect('rbc.db')
+    """
+    Возвращает описание темы и заголовки 5 самых свежих новостей в этой теме в виде одной строки
+    :param title: название темы (string)
+    :return: string
+    """
+    conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
     description = cur.execute('''
         SELECT description
         FROM Topic
         WHERE title = "{}"
-    '''.format(title)).fetchall()[0][0]
-    docs = cur.execute('''
-        SELECT Document.title, Document.url
-        FROM (SELECT url
-        FROM Topic
-        WHERE title = "{}") AS A
-        JOIN Topic_document
-        ON A.url = Topic_document.topic_url
-        JOIN Document
-        ON Topic_document.doc_url = Document.url
-        ORDER BY Document.time DESC
-    '''.format(title)).fetchall()[:5]
-    conn.close()
-    answer = title + '\n' + description
-    for doc in docs:
-        answer += '\n\n' + doc[0] + '\n' + doc[1]
-    return answer
+    '''.format(title)).fetchall()
+    if description == []:
+        conn.close()
+        return None
+    else:
+        answer = title + '\n' + description[0][0]
+        docs = cur.execute('''
+            SELECT Document.title, Document.url
+            FROM (SELECT url
+            FROM Topic
+            WHERE title = "{}") AS A
+            JOIN Topic_document
+            ON A.url = Topic_document.topic_url
+            JOIN Document
+            ON Topic_document.doc_url = Document.url
+            ORDER BY Document.time DESC
+        '''.format(title)).fetchall()[:5]
+        conn.close()
+        for doc in docs:
+            answer += '\n\n' + doc[0] + '\n' + doc[1]
+        return answer
 
 
 def doc(title):
+    """
+    Возвращает текст документа с указанным заголовком
+    :param title: название документа (string)
+    :return: string
+    """
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     text = cur.execute('''
             SELECT text
             FROM Document
             WHERE title = "{}"
-        '''.format(title)).fetchall()[0][0]
+        '''.format(title)).fetchall()
     conn.close()
-    return text
+    if text == []:
+        return None
+    else:
+        return text[0][0]
 
 
 def words(topic_title):
+    """
+    Возвращает 5 самых значимых слов в теме. Формула для подсчета значимости слова: +3 за упоминание слова в названии темы, +2 за упоминание слова в названии документа в теме, +1 за упоминание слова в теге, слова длины 1 не учитываются, длины 2-3 - только написанные в верхнем регистре(аббревиатуры)
+    :param topic_title: название темы (string)
+    :return: string
+    """
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     words = collections.defaultdict(int)
@@ -300,38 +395,47 @@ def words(topic_title):
             JOIN Document
             ON Topic_document.doc_url = Document.url
         '''.format(topic_title)).fetchall()
-    for doc_title in docs:
-        count_words(doc_title[0], words, 2)
-    tags = cur.execute('''
-            SELECT Document_tag.tag_title
-            FROM (
-                      SELECT url
-                      FROM Topic
-                      WHERE title = "{}"
-                 ) AS A
-            JOIN Topic_document
-            ON A.url = Topic_document.topic_url
-            JOIN Document
-            ON Topic_document.doc_url = Document.url
-            JOIN Document_tag
-            ON Document.url = Document_tag.doc_url
-        '''.format(topic_title)).fetchall()
-    for tag_title in tags:
-        count_words(tag_title[0], words, 1)
-    conn.close()
-    best_words = []
-    for word in words.keys():
-        for b_word in best_words:
-            if words[word] > words[b_word]:
-                best_words.insert(best_words.index(b_word), word)
-                break
-        if word not in best_words:
-            best_words.append(word)
-        best_words = best_words[:5]
-    return ('\n'.join(best_words))
+    if docs == []:
+        conn.close()
+        return None
+    else:
+        for doc_title in docs:
+            count_words(doc_title[0], words, 2)
+        tags = cur.execute('''
+                SELECT Document_tag.tag_title
+                FROM (
+                          SELECT url
+                          FROM Topic
+                          WHERE title = "{}"
+                     ) AS A
+                JOIN Topic_document
+                ON A.url = Topic_document.topic_url
+                JOIN Document
+                ON Topic_document.doc_url = Document.url
+                JOIN Document_tag
+                ON Document.url = Document_tag.doc_url
+            '''.format(topic_title)).fetchall()
+        for tag_title in tags:
+            count_words(tag_title[0], words, 1)
+        conn.close()
+        best_words = []
+        for word in words.keys():
+            for b_word in best_words:
+                if words[word] > words[b_word]:
+                    best_words.insert(best_words.index(b_word), word)
+                    break
+            if word not in best_words:
+                best_words.append(word)
+            best_words = best_words[:5]
+        return ('\n'.join(best_words))
 
 
 def describe_doc(doc_title):
+    """
+    Возвращает адреса изображений графиков для документа в списке строк
+    :param doc_title: название документа (string)
+    :return: list
+    """
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     answer = None
@@ -340,12 +444,17 @@ def describe_doc(doc_title):
         FROM Document
         WHERE title = "{}"
     '''.format(doc_title)).fetchall() != []:
-         answer = ['images/lengths/docs/' + doc_title + '.png', 'images/frequences/docs/' + doc_title + '.png']
+         answer = ['images/docs/' + doc_title + ' L.png', 'images/docs/' + doc_title + ' F.png']
     cur.close()
     return answer
 
 
 def describe_topic(topic_title):
+    """
+    Возвращает информацию о теме: количество документов в теме, среднюю длину документа и адреса изображений графиков в виде списка строк
+    :param topic_title: название темы (string)
+    :return: list
+    """
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     answer = None
