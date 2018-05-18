@@ -14,7 +14,8 @@ def make_soup(url):
 
 def month(month_string):
     """
-    Возврашает номер месяца по его названию (на русском) в формате строки из двух цифр (string)
+    Возврашает номер месяца по его названию (на русском) в формате строки из
+    двух цифр (string)
     :param month_string: название месяца (string)
     :return: string
     """
@@ -46,7 +47,8 @@ def month(month_string):
 
 def string_to_time(time_string):
     """
-    Преобразует строку, полученную с сайта, в строку в формате "YYYY/MM/DD HH:MM"
+    Преобразует строку, полученную с сайта, в строку в формате
+    "YYYY/MM/DD HH:MM"
     :param time_string: время
     :return: string
     """
@@ -80,7 +82,8 @@ def parse_document(url):
     tags = {}
     for tag in page.find_all('a', {'class': 'article__tags__link'}):
         tags.update({tag.text.strip().replace('"', ''): tag.get('href')})
-    return {'url': url, 'title': title, 'time': time, 'text': text, 'tags': tags}
+    return {'url': url, 'title': title, 'time': time,
+            'text': text, 'tags': tags}
 
 
 def parse_docs_in_topic(url):
@@ -91,7 +94,8 @@ def parse_docs_in_topic(url):
     """
     page = make_soup(url)
     docs = []
-    for document in page.find_all('a', {'class': 'item__link no-injects js-yandex-counter'}):
+    for document in page.find_all('a', {'class': 'item__link no-injects
+                                  js-yandex-counter'}):
         docs.append(document.get('href'))
     return docs
 
@@ -103,7 +107,7 @@ def parse_topic(url):
     :return: dict
     """
     page = make_soup(url)
-    title = page.find(
-        'div', {'class': 'story__title js-story-one-id'}).contents[0].strip()[:-1]
+    title = page.find('div', {'class': 'story__title
+                      js-story-one-id'}).contents[0].strip()[:-1]
     description = page.find('span', {'class': 'story__text'}).text.strip()
     return {'title': title, 'url': url, 'description': description}
