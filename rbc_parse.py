@@ -55,7 +55,8 @@ def string_to_time(time_string):
     if len(info) == 1:
         answer = strftime("%Y/%m/%d", gmtime()) + " " + info[0]
     elif len(info) == 3:
-        answer = strftime("%Y/", gmtime()) + month(info[1]) + "/" + info[0] + " " + info[2]
+        answer = strftime("%Y/", gmtime()) + \
+            month(info[1]) + "/" + info[0] + " " + info[2]
     elif len(info) == 4:
         answer = info[2] + "/" + month(info[1]) + "/" + info[0] + " " + info[3]
     return answer
@@ -68,8 +69,10 @@ def parse_document(url):
     :return: dict
     """
     page = make_soup(url)
-    title = page.find('div', {'class': 'article__header__title'}).find('span', {'class': 'js-slide-title'}).text.strip()
-    time = string_to_time(page.find('span', {'class': 'article__header__date'}).text.strip())
+    title = page.find('div', {'class': 'article__header__title'}).find(
+        'span', {'class': 'js-slide-title'}).text.strip()
+    time = string_to_time(
+        page.find('span', {'class': 'article__header__date'}).text.strip())
     text = ""
     for par in page.find('div', {'class': 'article__text'}).find_all('p'):
         if par.find('div') is None and par.find('script') is None:
@@ -100,6 +103,7 @@ def parse_topic(url):
     :return: dict
     """
     page = make_soup(url)
-    title = page.find('div', {'class': 'story__title js-story-one-id'}).contents[0].strip()[:-1]
+    title = page.find(
+        'div', {'class': 'story__title js-story-one-id'}).contents[0].strip()[:-1]
     description = page.find('span', {'class': 'story__text'}).text.strip()
     return {'title': title, 'url': url, 'description': description}

@@ -104,7 +104,7 @@ def update_docs_in_topic(docs_in_topic):
     conn.close()
 
 
-def count_words(text, words, n = 1):
+def count_words(text, words, n=1):
     """
     Обновляет words количеством появлений каждого слова в тексте, умноженным на n
     :param text: текст (string)
@@ -164,8 +164,10 @@ def describe_text(text, file_name):
     total = sum(words.values())
     for word in words.keys():
         frequences[int(words[word] * 100 / total)] += words[word]
-    make_image(lengths, 'Длины слов', 'Длина', 'Количество слов', 'images/' + file_name + ' L')
-    make_image(frequences[:10], 'Частоты слов', 'Частота', 'Количество слов', 'images/' + file_name + ' F')
+    make_image(lengths, 'Длины слов', 'Длина',
+               'Количество слов', 'images/' + file_name + ' L')
+    make_image(frequences[:10], 'Частоты слов', 'Частота',
+               'Количество слов', 'images/' + file_name + ' F')
 
 
 def update_images():
@@ -411,7 +413,8 @@ def describe_doc(doc_title):
         FROM Document
         WHERE title = "{}"
     '''.format(doc_title)).fetchall() != []:
-         answer = ['images/docs/' + doc_title + ' L.png', 'images/docs/' + doc_title + ' F.png']
+        answer = ['images/docs/' + doc_title + ' L.png',
+                  'images/docs/' + doc_title + ' F.png']
     cur.close()
     return answer
 
@@ -444,6 +447,7 @@ def describe_topic(topic_title):
         for text in docs_text:
             docs_avg_length += len(re.findall(r"\w+", text[0]))
         docs_avg_length /= docs_count
-        answer = ["Количество документов в теме " + str(docs_count) + '\n\nСреднее количество слов в документе ' + str(int(docs_avg_length)), 'images/lengths/topics/' + topic_title + '.png', 'images/frequences/topics/' + topic_title + '.png']
+        answer = ["Количество документов в теме " + str(docs_count) + '\n\nСреднее количество слов в документе ' + str(int(
+            docs_avg_length)), 'images/lengths/topics/' + topic_title + '.png', 'images/frequences/topics/' + topic_title + '.png']
     conn.close()
     return answer

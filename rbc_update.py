@@ -3,6 +3,7 @@ import rbc_parse
 import time
 import os
 
+
 def update():
     """
     Обновляет базу данных
