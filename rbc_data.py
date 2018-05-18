@@ -3,7 +3,6 @@ import sqlite3
 import re
 import collections
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot
 import pandas
 import os
@@ -89,7 +88,8 @@ def get_existing_docs_url():
 def update_docs_in_topic(docs_in_topic):
     """
     Обновляет таблицу Topic_document значениями словаря docs_in_topic
-    :param docs_in_topic: словарь, сопоставляющий адресу темы список адресов документов (dict)
+    :param docs_in_topic: словарь, сопоставляющий адресу темы список адресов
+    документов (dict)
     :return: None
     """
     conn = sqlite3.connect('data/rbc.db')
@@ -106,7 +106,8 @@ def update_docs_in_topic(docs_in_topic):
 
 def count_words(text, words, n=1):
     """
-    Обновляет words количеством появлений каждого слова в тексте, умноженным на n
+    Обновляет words количеством появлений каждого слова в тексте,
+    умноженным на n
     :param text: текст (string)
     :param words: словарь слов и частот (collections.defaultdict(int))
     :param n: коэффициент (int, по умолчанию 1)
@@ -151,7 +152,8 @@ def make_image(data, plot_title, xlabel, ylabel, file_name):
 
 def describe_text(text, file_name):
     """
-    Делает графики частот и длин слов в тексте и записывает их в файл с данным названием
+    Делает графики частот и длин слов в тексте и записывает их в файл с данным
+    названием
     :param text: текст (string)
     :param file_name: название файла (string)
     :return: None
@@ -233,7 +235,8 @@ def update_documents(documents):
         cur.execute('''
             INSERT OR INGNORE INTO Document (url, title, time, text)
             VALUES ("{}", "{}", "{}", "{}")
-        '''.format(document['url'], document['title'], document['time'], document['text']))
+        '''.format(document['url'], document['title'], document['time'],
+                   document['text']))
         for tag_title in document['tags'].keys():
             cur.execute('''
                 INSERT OR INGNORE INTO Tag (title, url)
@@ -249,7 +252,8 @@ def update_documents(documents):
 
 def new_docs(number):
     """
-    Возвращает указанное количество документов с самой поздней датой в виде списка строк из названия документа и его адреса
+    Возвращает указанное количество документов с самой поздней датой в виде
+    списка строк из названия документа и его адреса
     :param number: количество документов (int)
     :return: list
     """
@@ -269,7 +273,8 @@ def new_docs(number):
 
 def new_topics(number):
     """
-    Возвращает указанное количество тем с самой поздней датой в виде списка строк из названия темы и ее адреса
+    Возвращает указанное количество тем с самой поздней датой в виде списка
+    строк из названия темы и ее адреса
     :param number: количество тем (int)
     :return: list
     """
@@ -294,7 +299,8 @@ def new_topics(number):
 
 def topic(title):
     """
-    Возвращает описание темы и заголовки 5 самых свежих новостей в этой теме в виде одной строки
+    Возвращает описание темы и заголовки 5 самых свежих новостей в этой теме
+    в виде одной строки
     :param title: название темы (string)
     :return: string
     """
@@ -349,7 +355,10 @@ def doc(title):
 
 def words(topic_title):
     """
-    Возвращает 5 самых значимых слов в теме. Формула для подсчета значимости слова: +3 за упоминание слова в названии темы, +2 за упоминание слова в названии документа в теме, +1 за упоминание слова в теге, слова длины 1 не учитываются, длины 2-3 - только написанные в верхнем регистре(аббревиатуры)
+    Возвращает 5 самых значимых слов в теме. Формула для подсчета значимости
+    слова: +3 за упоминание слова в названии темы, +2 за упоминание слова в
+    названии документа в теме, +1 за упоминание слова в теге, слова длины 1 не
+    учитываются, длины 2-3 - только написанные в верхнем регистре(аббревиатуры)
     :param topic_title: название темы (string)
     :return: string
     """
@@ -421,7 +430,8 @@ def describe_doc(doc_title):
 
 def describe_topic(topic_title):
     """
-    Возвращает информацию о теме: количество документов в теме, среднюю длину документа и адреса изображений графиков в виде списка строк
+    Возвращает информацию о теме: количество документов в теме, среднюю длину
+    документа и адреса изображений графиков в виде списка строк
     :param topic_title: название темы (string)
     :return: list
     """
@@ -447,7 +457,10 @@ def describe_topic(topic_title):
         for text in docs_text:
             docs_avg_length += len(re.findall(r"\w+", text[0]))
         docs_avg_length /= docs_count
-        answer = ["Количество документов в теме " + str(docs_count) + '\n\nСреднее количество слов в документе ' + str(int(
-            docs_avg_length)), 'images/lengths/topics/' + topic_title + '.png', 'images/frequences/topics/' + topic_title + '.png']
+        answer = ["Количество документов в теме " + str(docs_count) +
+                  "\n\nСреднее количество слов в документе " +
+                  str(int(docs_avg_length)),
+                  'images/topics/' + topic_title + ' L.png',
+                  'images/topics/' + topic_title + ' F.png']
     conn.close()
     return answer
