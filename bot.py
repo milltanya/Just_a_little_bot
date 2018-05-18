@@ -43,11 +43,12 @@ def bot_new_docs(message):
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
         if 0 < int(args[1]):
-            docs = rbc_data.new_docs(int(args[1]))
-            for i in range(len(docs) / 10):
-                bot.send_message(message.chat.id, "\n\n".join(docs[i*10: i*10 + 10]))
+            for doc in rbc_data.new_docs(int(args[1])):
+                bot.send_message(message.chat.id, doc)
         else:
             bot.send_message(message.chat.id, "Число должно быть больше нуля")
+    else:
+        bot.send_message(message.chat.id, "Введите одно число")
 
 
 @bot.message_handler(commands=['new_topics'])
@@ -60,11 +61,12 @@ def bot_new_topics(message):
     args = message.text.split()
     if len(args) == 2 and args[1].isdigit():
         if 0 < int(args[1]):
-            topics = rbc_data.new_topics(int(args[1]))
-            for i in range(len(topics) / 10):
-                bot.send_message(message.chat.id, "\n\n".join(topics[i*10: i*10 + 10]))
+            for topic in rbc_data.new_topics(int(args[1])):
+                bot.send_message(message.chat.id, topic)
         else:
             bot.send_message(message.chat.id, "Число должно быть больше нуля")
+    else:
+        bot.send_message(message.chat.id, "Введите одно число")
 
 
 @bot.message_handler(commands=['topic'])
@@ -81,6 +83,8 @@ def bot_topic(message):
             bot.send_message(message.chat.id, answer)
         else:
             bot.send_message(message.chat.id, "Тема не найдена")
+    else:
+        bot.send_message(message.chat.id, "Введите название темы")
 
 
 @bot.message_handler(commands=['doc'])
@@ -97,6 +101,8 @@ def bot_doc(message):
             bot.send_message(message.chat.id, answer)
         else:
             bot.send_message(message.chat.id, "Документ не найден")
+    else:
+        bot.send_message(message.chat.id, "Введите название документа")
 
 
 @bot.message_handler(commands=['words'])
@@ -113,6 +119,8 @@ def bot_words(message):
             bot.send_message(message.chat.id, answer)
         else:
             bot.send_message(message.chat.id, "Тема не найдена")
+    else:
+        bot.send_message(message.chat.id, "Введите название темы")
 
 
 @bot.message_handler(commands=['describe_doc'])
@@ -132,6 +140,8 @@ def bot_describe_doc(message):
                 bot.send_photo(message.chat.id, image2)
         else:
             bot.send_message(message.chat.id, "Документ не найден")
+    else:
+        bot.send_message(message.chat.id, "Введите название документа")
 
 
 @bot.message_handler(commands=['describe_topic'])
@@ -152,6 +162,8 @@ def bot_describe_topic(message):
                 bot.send_photo(message.chat.id, image2)
         else:
             bot.send_message(message.chat.id, "Тема не найдена")
+    else:
+        bot.send_message(message.chat.id, "Введите название темы")
 
 
 @bot.message_handler()

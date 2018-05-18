@@ -58,7 +58,7 @@ def create_database():
 
 def get_existing_topics_url():
     """
-    Возвращает список адресов тем, которые уже есть в базе. Каждый элемент списка - список из одного элемента
+    Возвращает список адресов тем, которые уже есть в базе
     :return: list
     """
     conn = sqlite3.connect('data/rbc.db')
@@ -68,12 +68,12 @@ def get_existing_topics_url():
         FROM Topic
     ''').fetchall()
     conn.close()
-    return existing_url
+    return list(item[0] for item in existing_url)
 
 
 def get_existing_docs_url():
     """
-    Возвращает список адресов документов, которые уже есть в базе. Каждый элемент списка - список из одного элемента
+    Возвращает список адресов документов, которые уже есть в базе
     :return: list
     """
     conn = sqlite3.connect('data/rbc.db')
@@ -83,7 +83,7 @@ def get_existing_docs_url():
         FROM Document
     ''').fetchall()
     conn.close()
-    return existing_url
+    return list(item[0] for item in existing_url)
 
 
 def update_docs_in_topic(docs_in_topic):
@@ -94,18 +94,12 @@ def update_docs_in_topic(docs_in_topic):
     """
     conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
-    existing_docs_in_topics = cur.execute('''
-        SELECT *
-        FROM Topic_document
-    ''').fetchall()
     for topic in docs_in_topic.keys():
         for doc in docs_in_topic[topic]:
-            if [topic, doc] not in existing_docs_in_topics:
-                existing_docs_in_topics.append([topic, doc])
-                cur.execute('''
-                    INSERT INTO Topic_document (topic_url, Doc_url)
-                    VALUES ("{}", "{}")
-                '''.format(topic, doc))
+            cur.execute('''
+                INSERT IGNORE INTO Topic_document (topic_url, Doc_url)
+                VALUES ("{}", "{}")
+            '''.format(topic, doc))
     conn.commit()
     conn.close()
 
@@ -119,11 +113,7 @@ def count_words(text, words, n = 1):
     :return: None
     """
     for word in re.findall(r"\w+", text):
-        if len(word) > 1:
-            if len(word) > 3:
-                words[word[0].upper() + word[1:]] += n
-            elif word.isupper():
-                words[word] += n
+        words[word[0].upper() + word[1:]] += n
 
 
 def count_lengths(words, lengths):
@@ -155,7 +145,7 @@ def make_image(data, plot_title, xlabel, ylabel, file_name):
     plot.set_xlabel(xlabel)
     plot.set_ylabel(ylabel)
     matplotlib.pyplot.legend('')
-    matplotlib.pyplot.savefig(file_name + '.png')
+    matplotlib.pyplot.savefig(file_name)
     matplotlib.pyplot.close()
 
 
@@ -169,7 +159,7 @@ def describe_text(text, file_name):
     words = collections.defaultdict(int)
     lengths = []
     frequences = [0] * 100
-    count_words(text, words, 1)
+    count_words(text, words)
     count_lengths(words, lengths)
     total = sum(words.values())
     for word in words.keys():
@@ -208,9 +198,7 @@ def update_images():
                     JOIN Document
                     ON A.doc_url = Document.url
                 '''.format(topic[1])).fetchall()
-            text = ''
-            for item in docs_text:
-                text += item[0]
+            text = ' '.join([item[0] for item in docs_text])
             describe_text(text, 'topics/' + topic[0])
 
 
@@ -224,7 +212,7 @@ def update_topics(new_topics):
     cur = conn.cursor()
     for topic in new_topics:
         cur.execute('''
-            INSERT INTO Topic (url, title, description)
+            INSERT IGNORE INTO Topic (url, title, description)
             VALUES ("{}", "{}", "{}")
         '''.format(topic['url'], topic['title'], topic['description']))
     conn.commit()
@@ -239,34 +227,18 @@ def update_documents(documents):
     """
     conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
-    existing_tags = cur.execute('''
-                    SELECT title
-                    FROM Tag
-                ''').fetchall()
     for document in documents:
-        try:
-            cur.execute('''
-                INSERT INTO Document (url, title, time, text)
-                VALUES ("{}", "{}", "{}", "{}")
-            '''.format(document['url'], document['title'], document['time'], document['text']))
-        except sqlite3.OperationalError as error:
-            f = open('log/error.txt', 'a')
-            f.write('''
-                INSERT INTO Document (url, title, time, text)
-                VALUES ("{}", "{}", "{}", "{}")
-            '''.format(document['url'], document['title'], document['time'], document['text']))
-            f.write(error)
-            f.write('\n\n')
-            f.close()
+        cur.execute('''
+            INSERT IGNORE INTO Document (url, title, time, text)
+            VALUES ("{}", "{}", "{}", "{}")
+        '''.format(document['url'], document['title'], document['time'], document['text']))
         for tag_title in document['tags'].keys():
-            if [tag_title] not in existing_tags:
-                existing_tags.append([tag_title])
-                cur.execute('''
-                    INSERT INTO Tag (title, url)
-                    VALUES ("{}", "{}")
-                '''.format(tag_title, document['tags'][tag_title]))
             cur.execute('''
-                INSERT INTO Document_tag (doc_url, tag_title)
+                INSERT IGNORE INTO Tag (title, url)
+                VALUES ("{}", "{}")
+            '''.format(tag_title, document['tags'][tag_title]))
+            cur.execute('''
+                INSERT IGNORE INTO Document_tag (doc_url, tag_title)
                 VALUES ("{}", "{}")
             '''.format(document['url'], tag_title))
     conn.commit()
@@ -381,52 +353,47 @@ def words(topic_title):
     """
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
-    words = collections.defaultdict(int)
-    count_words(topic_title, words, 3)
-    docs = cur.execute('''
-            SELECT Document.title
-            FROM (
-                      SELECT url
-                      FROM Topic
-                      WHERE title = "{}"
-                 ) AS A
-            JOIN Topic_document
-            ON A.url = Topic_document.topic_url
-            JOIN Document
-            ON Topic_document.doc_url = Document.url
-        '''.format(topic_title)).fetchall()
-    if docs == []:
-        conn.close()
+    url = cur.execute('''SELECT url
+         FROM Topic
+         WHERE title = "{}"
+    )'''.format(topic_title)).fetchall()
+    if url == []:
         return None
     else:
+        url = url[0][0]
+        docs = cur.execute('''
+            SELECT Document.title
+            FROM Topic_document
+            ON Topic_document.topic_url = "{}"
+            JOIN Document
+            ON Topic_document.doc_url = Document.url
+        '''.format(url)).fetchall()
+        words = collections.defaultdict(int)
+        count_words(topic_title, words, 3)
         for doc_title in docs:
             count_words(doc_title[0], words, 2)
         tags = cur.execute('''
                 SELECT Document_tag.tag_title
-                FROM (
-                          SELECT url
-                          FROM Topic
-                          WHERE title = "{}"
-                     ) AS A
-                JOIN Topic_document
-                ON A.url = Topic_document.topic_url
+                FROM Topic_document
+                ON Topic_document.topic_url = "{}"
                 JOIN Document
                 ON Topic_document.doc_url = Document.url
                 JOIN Document_tag
                 ON Document.url = Document_tag.doc_url
-            '''.format(topic_title)).fetchall()
+            '''.format(url)).fetchall()
         for tag_title in tags:
             count_words(tag_title[0], words, 1)
         conn.close()
         best_words = []
         for word in words.keys():
-            for b_word in best_words:
-                if words[word] > words[b_word]:
-                    best_words.insert(best_words.index(b_word), word)
-                    break
-            if word not in best_words:
-                best_words.append(word)
-            best_words = best_words[:5]
+            if len(word) > 1 and ((len(word) > 3) or word.isupper()):
+                for b_word in best_words:
+                    if words[word] > words[b_word]:
+                        best_words.insert(best_words.index(b_word), word)
+                        break
+                if word not in best_words:
+                    best_words.append(word)
+                best_words = best_words[:5]
         return ('\n'.join(best_words))
 
 
@@ -458,21 +425,20 @@ def describe_topic(topic_title):
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     answer = None
-    if cur.execute('''
+    url = cur.execute('''
             SELECT *
             FROM Topic
             WHERE title = "{}"
-    '''.format(topic_title)).fetchall() != []:
+    '''.format(topic_title)).fetchall()
+    if url != []:
+        url = url[0][0]
         docs_text = cur.execute('''
                 SELECT Document.text
-                FROM (SELECT url
-                FROM Topic
-                WHERE title = "{}") AS A
-                JOIN Topic_document
-                ON A.url = Topic_document.topic_url
+                FROM Topic_document
+                ON Topic_document.topic_url = "{}"
                 JOIN Document
                 ON Topic_document.doc_url = Document.url
-            '''.format(topic_title)).fetchall()
+            '''.format(url)).fetchall()
         docs_count = len(docs_text)
         docs_avg_length = 0
         for text in docs_text:

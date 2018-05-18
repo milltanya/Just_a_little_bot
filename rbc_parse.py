@@ -1,8 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 from time import gmtime, strftime
-session = requests.Session()
-session.max_redirects = 100000
 
 
 def make_soup(url):
@@ -11,7 +9,7 @@ def make_soup(url):
     :param url: string
     :return: soup
     """
-    return BeautifulSoup(session.get(url).text.encode(), "html.parser")
+    return BeautifulSoup(requests.get(url).text.encode(), "html.parser")
 
 
 def month(month_string):
@@ -77,7 +75,7 @@ def parse_document(url):
         if par.find('div') is None and par.find('script') is None:
             text += par.text.strip() + '\n'
     tags = {}
-    for tag in page.find_all('a', {'class': 'article__tags__link'})[:10]:
+    for tag in page.find_all('a', {'class': 'article__tags__link'}):
         tags.update({tag.text.strip().replace('"', ''): tag.get('href')})
     return {'url': url, 'title': title, 'time': time, 'text': text, 'tags': tags}
 
@@ -103,5 +101,5 @@ def parse_topic(url):
     """
     page = make_soup(url)
     title = page.find('div', {'class': 'story__title js-story-one-id'}).contents[0].strip()[:-1]
-    text = page.find('span', {'class': 'story__text'}).text.strip()
-    return {'title': title, 'url': url, 'description': text}
+    description = page.find('span', {'class': 'story__text'}).text.strip()
+    return {'title': title, 'url': url, 'description': description}
