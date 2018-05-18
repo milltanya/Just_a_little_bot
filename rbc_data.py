@@ -97,7 +97,7 @@ def update_docs_in_topic(docs_in_topic):
     for topic in docs_in_topic.keys():
         for doc in docs_in_topic[topic]:
             cur.execute('''
-                INSERT IGNORE INTO Topic_document (topic_url, Doc_url)
+                INSERT OR IGNORE INTO Topic_document (topic_url, Doc_url)
                 VALUES ("{}", "{}")
             '''.format(topic, doc))
     conn.commit()
@@ -212,7 +212,7 @@ def update_topics(new_topics):
     cur = conn.cursor()
     for topic in new_topics:
         cur.execute('''
-            INSERT IGNORE INTO Topic (url, title, description)
+            INSERT OR INGNORE INTO Topic (url, title, description)
             VALUES ("{}", "{}", "{}")
         '''.format(topic['url'], topic['title'], topic['description']))
     conn.commit()
@@ -229,16 +229,16 @@ def update_documents(documents):
     cur = conn.cursor()
     for document in documents:
         cur.execute('''
-            INSERT IGNORE INTO Document (url, title, time, text)
+            INSERT OR INGNORE INTO Document (url, title, time, text)
             VALUES ("{}", "{}", "{}", "{}")
         '''.format(document['url'], document['title'], document['time'], document['text']))
         for tag_title in document['tags'].keys():
             cur.execute('''
-                INSERT IGNORE INTO Tag (title, url)
+                INSERT OR INGNORE INTO Tag (title, url)
                 VALUES ("{}", "{}")
             '''.format(tag_title, document['tags'][tag_title]))
             cur.execute('''
-                INSERT IGNORE INTO Document_tag (doc_url, tag_title)
+                INSERT OR INGNORE INTO Document_tag (doc_url, tag_title)
                 VALUES ("{}", "{}")
             '''.format(document['url'], tag_title))
     conn.commit()
