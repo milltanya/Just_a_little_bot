@@ -133,7 +133,7 @@ def make_image(data, plot_title, xlabel, ylabel, file_name):
     plot.set_xlabel(xlabel)
     plot.set_ylabel(ylabel)
     matplotlib.pyplot.legend('')
-    matplotlib.pyplot.savefig('data/images/' + file_name)
+    matplotlib.pyplot.savefig('data/images/' + file_name + '.png')
     matplotlib.pyplot.close()
 
 
