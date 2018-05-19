@@ -41,10 +41,6 @@ def updating():
         f.close()
         time.sleep(1800)
 
-rbc_data.create_database()
-update()
-print("Done")
-
-# if __name__ == '__main__':
-#     rbc_data.create_database()
-#     updating()
+if __name__ == '__main__':
+    rbc_data.create_database()
+    updating()
