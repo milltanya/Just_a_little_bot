@@ -128,6 +128,7 @@ def make_image(data, plot_title, xlabel, ylabel, file_name):
     :param file_name: Название файла(string)
     :return:
     """
+    print(data)
     data_frame = pandas.DataFrame(data)
     plot = data_frame.plot(kind='hist', title=plot_title)
     plot.set_xlabel(xlabel)
@@ -161,6 +162,24 @@ def describe_text(text, file_name):
                'Количество слов', file_name + ' L')
     make_image(frequences[:10], 'Частоты слов', 'Частота',
                'Количество слов', file_name + ' F')
+
+
+describe_text('''My mistress' eyes are nothing like the sun;
+Coral is far more red than her lips' red;
+If snow be white, why then her breasts are dun;
+If hairs be wires, black wires grow on her head.
+I have seen roses damask'd, red and white,
+But no such roses see I in her cheeks;
+And in some perfumes is there more delight
+Than in the breath that from my mistress reeks.
+I love to hear her speak, yet well I know
+That music hath a far more pleasing sound;
+I grant I never saw a goddess go;
+My mistress, when she walks, treads on the ground:
+   And yet, by heaven, I think my love as rare
+   As any she belied with false compare.
+
+Paraphrase and Analysis of Sonnet 130 ''', 'kek')
 
 
 def update_topics(new_topics):
