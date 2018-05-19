@@ -118,20 +118,6 @@ def count_words(text, words, n=1):
         words[word[0].upper() + word[1:]] += n
 
 
-def count_lengths(words, lengths):
-    """
-    Обновляет lengths количеством появлений слов разной длины в словаре words
-    :param words: словарь слов и частот (collections.defaultdict(int))
-    :param lengths: список частот слов длины, равной индексу (дist)
-    :return:
-    """
-    for word in words.keys():
-        length = len(word)
-        if length >= len(lengths):
-            lengths.extend([0] * (length - len(lengths) + 1))
-        lengths[length] += words[word]
-
-
 def make_image(data, plot_title, xlabel, ylabel, file_name):
     """
     Делает изображение графика по указанным данным
@@ -147,7 +133,7 @@ def make_image(data, plot_title, xlabel, ylabel, file_name):
     plot.set_xlabel(xlabel)
     plot.set_ylabel(ylabel)
     matplotlib.pyplot.legend('')
-    matplotlib.pyplot.savefig(file_name)
+    matplotlib.pyplot.savefig('data/images/' + file_name)
     matplotlib.pyplot.close()
 
 
@@ -160,51 +146,21 @@ def describe_text(text, file_name):
     :return: None
     """
     words = collections.defaultdict(int)
-    lengths = []
-    frequences = [0] * 100
     count_words(text, words)
-    count_lengths(words, lengths)
+    lengths = []
+    for word in words.keys():
+        length = len(word)
+        if length >= len(lengths):
+            lengths.extend([0] * (length - len(lengths) + 1))
+        lengths[length] += words[word]
     total = sum(words.values())
+    frequences = [0] * 100
     for word in words.keys():
         frequences[int(words[word] * 100 / total)] += words[word]
     make_image(lengths, 'Длины слов', 'Длина',
-               'Количество слов', 'images/' + file_name + ' L')
+               'Количество слов', file_name + ' L')
     make_image(frequences[:10], 'Частоты слов', 'Частота',
-               'Количество слов', 'images/' + file_name + ' F')
-
-
-def update_images():
-    """
-    Обновляет изображения графиков для базы
-    :return: None
-    """
-    conn = sqlite3.connect('data/rbc.db')
-    cur = conn.cursor()
-    docs = cur.execute('''
-        SELECT title, text
-        FROM Document
-    ''').fetchall()
-    for doc in docs:
-        if (doc[0] + ' L.png') not in os.listdir('data/images/docs'):
-            describe_text(doc[1], 'docs/' + doc[0])
-    topics = cur.execute('''
-        SELECT title, url
-        FROM Topic
-    ''').fetchall()
-    for topic in topics:
-        if (topic[0] + ' L.png') not in os.listdir('data/images/topics'):
-            docs_text = cur.execute('''
-                    SELECT Document.text
-                    FROM (
-                        SELECT doc_url
-                        FROM Topic_document
-                        WHERE topic_url = "{}"
-                        ) AS A
-                    JOIN Document
-                    ON A.doc_url = Document.url
-                '''.format(topic[1].replace('"', ''))).fetchall()
-            text = ' '.join([item[0] for item in docs_text])
-            describe_text(text, 'topics/' + topic[0])
+               'Количество слов', file_name + ' F')
 
 
 def update_topics(new_topics):
@@ -222,6 +178,23 @@ def update_topics(new_topics):
         '''.format(topic['url'].replace('"', ''),
                     topic['title'].replace('"', ''),
                     topic['description'].replace('"', '')))
+    topics = cur.execute('''
+        SELECT title, url
+        FROM Topic
+    ''').fetchall()
+    for topic in topics:
+        docs_text = cur.execute('''
+                SELECT Document.text
+                FROM (
+                    SELECT doc_url
+                    FROM Topic_document
+                    WHERE topic_url = "{}"
+                    ) AS A
+                JOIN Document
+                ON A.doc_url = Document.url
+            '''.format(topic[1].replace('"', ''))).fetchall()
+        text = ' '.join([item[0] for item in docs_text])
+        describe_text(text, 'topics/' + topic[0])
     conn.commit()
     conn.close()
 
@@ -235,6 +208,7 @@ def update_documents(documents):
     conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
     for document in documents:
+        describe_text(document['text'], 'docs/' + document['title'])
         cur.execute('''
             INSERT OR IGNORE INTO Document (url, title, time, text)
             VALUES ("{}", "{}", "{}", "{}")
@@ -288,13 +262,12 @@ def new_topics(number):
     conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
     topics = cur.execute('''
-        SELECT Topic.title, Topic.url
+        SELECT DISTINCT Topic.title, Topic.url
         FROM Topic
         JOIN Topic_document
         ON Topic.url = Topic_document.topic_url
         JOIN Document
         ON Topic_document.doc_url = Document.url
-        GROUP BY Topic.url
         ORDER BY MAX(Document.time) DESC
     ''').fetchall()[:number]
     conn.close()
@@ -349,10 +322,10 @@ def doc(title):
     conn = sqlite3.connect('rbc.db')
     cur = conn.cursor()
     text = cur.execute('''
-            SELECT text
-            FROM Document
-            WHERE title = "{}"
-        '''.format(title.replace('"', ''))).fetchall()
+        SELECT text
+        FROM Document
+        WHERE title = "{}"
+    '''.format(title.replace('"', ''))).fetchall()
     conn.close()
     if text == []:
         return None
@@ -466,7 +439,7 @@ def describe_topic(topic_title):
         docs_avg_length /= docs_count
         answer = ["Количество документов в теме " + str(docs_count) +
                   "\n\nСреднее количество слов в документе " +
-                  str(int(docs_avg_length)),
+                  str(docs_avg_length),
                   'images/topics/' + topic_title + ' L.png',
                   'images/topics/' + topic_title + ' F.png']
     conn.close()

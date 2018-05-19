@@ -26,10 +26,9 @@ def update():
             if doc_url not in existing_docs_url:
                 existing_docs_url.append(doc_url)
                 new_documents.append(rbc_parse.parse_document(doc_url))
-    rbc_data.update_topics(new_topics)
     rbc_data.update_documents(new_documents)
+    rbc_data.update_topics(new_topics)
     rbc_data.update_docs_in_topic(docs_in_topic)
-    rbc_data.update_images()
 
 
 def updating():
