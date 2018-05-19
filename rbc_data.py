@@ -268,7 +268,7 @@ def new_topics(number):
         ON Topic.url = Topic_document.topic_url
         JOIN Document
         ON Topic_document.doc_url = Document.url
-        ORDER BY MAX(Document.time) DESC
+        ORDER BY Document.time DESC
     ''').fetchall()[:number]
     conn.close()
     answer = []
