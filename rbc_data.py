@@ -99,7 +99,7 @@ def update_docs_in_topic(docs_in_topic):
             cur.execute('''
                 INSERT OR IGNORE INTO Topic_document (topic_url, Doc_url)
                 VALUES ("{}", "{}")
-            '''.format(topic, doc))
+            '''.format(topic.replace('"', ''), doc.replace('"', '')))
     conn.commit()
     conn.close()
 
@@ -201,7 +201,7 @@ def update_images():
                         ) AS A
                     JOIN Document
                     ON A.doc_url = Document.url
-                '''.format(topic[1])).fetchall()
+                '''.format(topic[1].replace('"', ''))).fetchall()
             text = ' '.join([item[0] for item in docs_text])
             describe_text(text, 'topics/' + topic[0])
 
@@ -216,9 +216,11 @@ def update_topics(new_topics):
     cur = conn.cursor()
     for topic in new_topics:
         cur.execute('''
-            INSERT OR INGNORE INTO Topic (url, title, description)
+            INSERT OR IGNORE INTO Topic (url, title, description)
             VALUES ("{}", "{}", "{}")
-        '''.format(topic['url'], topic['title'], topic['description']))
+        '''.format(topic['url'].replace('"', ''),
+                    topic['title'].replace('"', ''),
+                    topic['description'].replace('"', '')))
     conn.commit()
     conn.close()
 
@@ -233,19 +235,23 @@ def update_documents(documents):
     cur = conn.cursor()
     for document in documents:
         cur.execute('''
-            INSERT OR INGNORE INTO Document (url, title, time, text)
+            INSERT OR IGNORE INTO Document (url, title, time, text)
             VALUES ("{}", "{}", "{}", "{}")
-        '''.format(document['url'], document['title'], document['time'],
-                   document['text']))
+        '''.format(document['url'].replace('"', ''),
+                    document['title'].replace('"', ''),
+                    document['time'].replace('"', ''),
+                    document['text'].replace('"', '')))
         for tag_title in document['tags'].keys():
             cur.execute('''
-                INSERT OR INGNORE INTO Tag (title, url)
+                INSERT OR IGNORE INTO Tag (title, url)
                 VALUES ("{}", "{}")
-            '''.format(tag_title, document['tags'][tag_title]))
+            '''.format(tag_title.replace('"', ''),
+                        document['tags'][tag_title].replace('"', '')))
             cur.execute('''
-                INSERT OR INGNORE INTO Document_tag (doc_url, tag_title)
+                INSERT OR IGNORE INTO Document_tag (doc_url, tag_title)
                 VALUES ("{}", "{}")
-            '''.format(document['url'], tag_title))
+            '''.format(document['url'].replace('"', ''),
+                        tag_title.replace('"', '')))
     conn.commit()
     conn.close()
 
@@ -310,7 +316,7 @@ def topic(title):
         SELECT description
         FROM Topic
         WHERE title = "{}"
-    '''.format(title)).fetchall()
+    '''.format(title.replace('"', ''))).fetchall()
     if description == []:
         conn.close()
         return None
@@ -326,7 +332,7 @@ def topic(title):
             JOIN Document
             ON Topic_document.doc_url = Document.url
             ORDER BY Document.time DESC
-        '''.format(title)).fetchall()[:5]
+        '''.format(title.replace('"', ''))).fetchall()[:5]
         conn.close()
         for doc in docs:
             answer += '\n\n' + doc[0] + '\n' + doc[1]
@@ -345,7 +351,7 @@ def doc(title):
             SELECT text
             FROM Document
             WHERE title = "{}"
-        '''.format(title)).fetchall()
+        '''.format(title.replace('"', ''))).fetchall()
     conn.close()
     if text == []:
         return None
@@ -367,7 +373,7 @@ def words(topic_title):
     url = cur.execute('''SELECT url
          FROM Topic
          WHERE title = "{}"
-    )'''.format(topic_title)).fetchall()
+    )'''.format(topic_title.replace('"', ''))).fetchall()
     if url == []:
         return None
     else:
@@ -378,7 +384,7 @@ def words(topic_title):
             ON Topic_document.topic_url = "{}"
             JOIN Document
             ON Topic_document.doc_url = Document.url
-        '''.format(url)).fetchall()
+        '''.format(url.replace('"', ''))).fetchall()
         words = collections.defaultdict(int)
         count_words(topic_title, words, 3)
         for doc_title in docs:
@@ -391,7 +397,7 @@ def words(topic_title):
                 ON Topic_document.doc_url = Document.url
                 JOIN Document_tag
                 ON Document.url = Document_tag.doc_url
-            '''.format(url)).fetchall()
+            '''.format(url.replace('"', ''))).fetchall()
         for tag_title in tags:
             count_words(tag_title[0], words, 1)
         conn.close()
@@ -421,7 +427,7 @@ def describe_doc(doc_title):
         SELECT *
         FROM Document
         WHERE title = "{}"
-    '''.format(doc_title)).fetchall() != []:
+    '''.format(doc_title.replace('"', ''))).fetchall() != []:
         answer = ['images/docs/' + doc_title + ' L.png',
                   'images/docs/' + doc_title + ' F.png']
     cur.close()
@@ -442,7 +448,7 @@ def describe_topic(topic_title):
             SELECT *
             FROM Topic
             WHERE title = "{}"
-    '''.format(topic_title)).fetchall()
+    '''.format(topic_title.replace('"', ''))).fetchall()
     if url != []:
         url = url[0][0]
         docs_text = cur.execute('''
@@ -451,7 +457,7 @@ def describe_topic(topic_title):
                 ON Topic_document.topic_url = "{}"
                 JOIN Document
                 ON Topic_document.doc_url = Document.url
-            '''.format(url)).fetchall()
+            '''.format(url.replace('"', ''))).fetchall()
         docs_count = len(docs_text)
         docs_avg_length = 0
         for text in docs_text:

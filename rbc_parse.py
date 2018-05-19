@@ -9,7 +9,8 @@ def make_soup(url):
     :param url: string
     :return: soup
     """
-    return BeautifulSoup(requests.get(url).text.encode(), "html.parser")
+    return BeautifulSoup(requests.get(url).text.encode(),
+                         "html.parser")
 
 
 def month(month_string):
@@ -48,19 +49,19 @@ def month(month_string):
 def string_to_time(time_string):
     """
     Преобразует строку, полученную с сайта, в строку в формате
-    "YYYY/MM/DD HH:MM"
+    "YYYY-MM-DD HH:MM"
     :param time_string: время
     :return: string
     """
     answer = ""
     info = time_string.replace(',', '').split()
     if len(info) == 1:
-        answer = strftime("%Y/%m/%d", gmtime()) + " " + info[0]
+        answer = strftime("%Y-%m-%d", gmtime()) + " " + info[0]
     elif len(info) == 3:
-        answer = strftime("%Y/", gmtime()) + \
-            month(info[1]) + "/" + info[0] + " " + info[2]
+        answer = strftime("%Y-", gmtime()) + \
+            month(info[1]) + "-" + info[0] + " " + info[2]
     elif len(info) == 4:
-        answer = info[2] + "/" + month(info[1]) + "/" + info[0] + " " + info[3]
+        answer = info[2] + "-" + month(info[1]) + "-" + info[0] + " " + info[3]
     return answer
 
 
@@ -94,8 +95,8 @@ def parse_docs_in_topic(url):
     """
     page = make_soup(url)
     docs = []
-    for document in page.find_all('a', {'class': 'item__link no-injects
-                                  js-yandex-counter'}):
+    for document in page.find_all('a', {'class':
+                                  'item__link no-injects js-yandex-counter'}):
         docs.append(document.get('href'))
     return docs
 
@@ -107,7 +108,7 @@ def parse_topic(url):
     :return: dict
     """
     page = make_soup(url)
-    title = page.find('div', {'class': 'story__title
-                      js-story-one-id'}).contents[0].strip()[:-1]
+    title = page.find('div', {'class':
+                      'story__title js-story-one-id'}).contents[0].strip()[:-1]
     description = page.find('span', {'class': 'story__text'}).text.strip()
     return {'title': title, 'url': url, 'description': description}
