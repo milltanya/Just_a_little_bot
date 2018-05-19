@@ -41,6 +41,7 @@ def updating():
         f.close()
         time.sleep(1800)
 
+
 if __name__ == '__main__':
     rbc_data.create_database()
     updating()

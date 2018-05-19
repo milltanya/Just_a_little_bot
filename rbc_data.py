@@ -3,9 +3,10 @@ import sqlite3
 import re
 import collections
 import matplotlib
-import matplotlib.pyplot
 import pandas
 import os
+matplotlib.use('Agg')
+import matplotlib.pyplot
 
 
 def create_database():
@@ -142,7 +143,7 @@ def make_image(data, plot_title, xlabel, ylabel, file_name):
     :return:
     """
     data_frame = pandas.DataFrame(data)
-    plot = data_frame.plot(kind='line', title=plot_title)
+    plot = data_frame.plot(kind='hist', title=plot_title)
     plot.set_xlabel(xlabel)
     plot.set_ylabel(ylabel)
     matplotlib.pyplot.legend('')
