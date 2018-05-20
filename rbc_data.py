@@ -86,7 +86,21 @@ def get_existing_docs_url():
     return list(item[0] for item in existing_url)
 
 
-def update_docs_in_topic(docs_in_topic):
+def get_last_document_date():
+    conn = sqlite3.connect('data/rbc.db')
+    cur = conn.cursor()
+    date = cur.execute('''
+        SELECT MIN(time)
+        FROM Document;
+    ''').fetchall()
+    conn.close()
+    if date != []:
+        return date[0][0]
+    else:
+        return None
+
+
+def update_docs_in_topic(topic, docs_in_topic):
     """
     Обновляет таблицу Topic_document значениями словаря docs_in_topic
     :param docs_in_topic: словарь, сопоставляющий адресу темы список адресов
@@ -95,12 +109,11 @@ def update_docs_in_topic(docs_in_topic):
     """
     conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
-    for topic in docs_in_topic.keys():
-        for doc in docs_in_topic[topic]:
-            cur.execute('''
-                INSERT OR IGNORE INTO Topic_document (topic_url, Doc_url)
-                VALUES ("{}", "{}")
-            '''.format(topic.replace('"', ''), doc.replace('"', '')))
+    for doc in docs_in_topic:
+        cur.execute('''
+            INSERT OR IGNORE INTO Topic_document (topic_url, Doc_url)
+            VALUES ("{}", "{}")
+        '''.format(topic.replace('"', ''), doc.replace('"', '')))
     conn.commit()
     conn.close()
 
@@ -129,7 +142,7 @@ def make_image(data, plot_title, xlabel, ylabel, file_name):
     :return:
     """
     data_frame = pandas.DataFrame(data)
-    plot = data_frame.plot(kind='hist', title=plot_title)
+    plot = data_frame.plot(kind='bar', title=plot_title)
     plot.set_xlabel(xlabel)
     plot.set_ylabel(ylabel)
     matplotlib.pyplot.legend('')
@@ -163,7 +176,7 @@ def describe_text(text, file_name):
                'Количество слов', file_name + ' F')
 
 
-def update_topics(new_topics):
+def update_topics(topic):
     """
     Обновляет базу тем значениями из списка словарей
     :param new_topics: list
@@ -171,19 +184,25 @@ def update_topics(new_topics):
     """
     conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
-    for topic in new_topics:
-        cur.execute('''
-            INSERT OR IGNORE INTO Topic (url, title, description)
-            VALUES ("{}", "{}", "{}")
-        '''.format(topic['url'].replace('"', ''),
-                    topic['title'].replace('"', ''),
-                    topic['description'].replace('"', '')))
-    topics = cur.execute('''
-        SELECT title, url
-        FROM Topic
-    ''').fetchall()
-    for topic in topics:
-        docs_text = cur.execute('''
+    cur.execute('''
+        INSERT OR IGNORE INTO Topic (url, title, description)
+        VALUES ("{}", "{}", "{}")
+    '''.format(topic['url'].replace('"', ''),
+                topic['title'].replace('"', ''),
+                topic['description'].replace('"', '')))
+    conn.commit()
+    conn.close()
+
+
+def update_topic_image(topic_url):
+    conn = sqlite3.connect('data/rbc.db')
+    cur = conn.cursor()
+    topic_title = cur.execute('''
+            SELECT title
+            FROM Topic
+            WHERE url = "{}"
+        '''.format(topic_url)).fetchall()[0][0]
+    docs_text = cur.execute('''
                 SELECT Document.text
                 FROM (
                     SELECT doc_url
@@ -192,14 +211,13 @@ def update_topics(new_topics):
                     ) AS A
                 JOIN Document
                 ON A.doc_url = Document.url
-            '''.format(topic[1].replace('"', ''))).fetchall()
-        text = ' '.join([item[0] for item in docs_text])
-        describe_text(text, 'topics/' + topic[0])
-    conn.commit()
+            '''.format(topic_url)).fetchall()
+    text = ' '.join([item[0] for item in docs_text])
+    describe_text(text, 'topics/' + topic_title)
     conn.close()
 
 
-def update_documents(documents):
+def update_documents(document):
     """
     Обновляет базу документов значениями из списка словарей
     :param documents: list
@@ -207,26 +225,25 @@ def update_documents(documents):
     """
     conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
-    for document in documents:
-        describe_text(document['text'], 'docs/' + document['title'])
+    describe_text(document['text'], 'docs/' + document['title'])
+    cur.execute('''
+        INSERT OR IGNORE INTO Document (url, title, time, text)
+        VALUES ("{}", "{}", "{}", "{}")
+    '''.format(document['url'].replace('"', ''),
+                document['title'].replace('"', ''),
+                document['time'].replace('"', ''),
+                document['text'].replace('"', '')))
+    for tag_title in document['tags'].keys():
         cur.execute('''
-            INSERT OR IGNORE INTO Document (url, title, time, text)
-            VALUES ("{}", "{}", "{}", "{}")
+            INSERT OR IGNORE INTO Tag (title, url)
+            VALUES ("{}", "{}")
+        '''.format(tag_title.replace('"', ''),
+                    document['tags'][tag_title].replace('"', '')))
+        cur.execute('''
+            INSERT OR IGNORE INTO Document_tag (doc_url, tag_title)
+            VALUES ("{}", "{}")
         '''.format(document['url'].replace('"', ''),
-                    document['title'].replace('"', ''),
-                    document['time'].replace('"', ''),
-                    document['text'].replace('"', '')))
-        for tag_title in document['tags'].keys():
-            cur.execute('''
-                INSERT OR IGNORE INTO Tag (title, url)
-                VALUES ("{}", "{}")
-            '''.format(tag_title.replace('"', ''),
-                        document['tags'][tag_title].replace('"', '')))
-            cur.execute('''
-                INSERT OR IGNORE INTO Document_tag (doc_url, tag_title)
-                VALUES ("{}", "{}")
-            '''.format(document['url'].replace('"', ''),
-                        tag_title.replace('"', '')))
+                    tag_title.replace('"', '')))
     conn.commit()
     conn.close()
 

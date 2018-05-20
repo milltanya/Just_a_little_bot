@@ -12,23 +12,19 @@ def update():
     page = rbc_parse.make_soup('https://www.rbc.ru/story/')
     existing_topics_url = rbc_data.get_existing_topics_url()
     existing_docs_url = rbc_data.get_existing_docs_url()
-    new_topics = []
-    docs_in_topic = {}
-    new_documents = []
     for item in page.find_all('a', {'class': 'item__link no-injects'}):
+        last_doc_date = rbc_data.get_last_document_date()
         topic_url = item.get('href')
         if topic_url not in existing_topics_url:
             existing_topics_url.append(topic_url)
-            new_topics.append(rbc_parse.parse_topic(topic_url))
-        docs = rbc_parse.parse_docs_in_topic(topic_url)
-        docs_in_topic.update({topic_url: docs})
+            rbc_data.update_topics(rbc_parse.parse_topic(topic_url))
+        docs = rbc_parse.parse_docs_in_topic(topic_url, last_doc_date)
+        rbc_data.update_docs_in_topic(topic_url, docs)
         for doc_url in docs:
             if doc_url not in existing_docs_url:
                 existing_docs_url.append(doc_url)
-                new_documents.append(rbc_parse.parse_document(doc_url))
-    rbc_data.update_documents(new_documents)
-    rbc_data.update_topics(new_topics)
-    rbc_data.update_docs_in_topic(docs_in_topic)
+                rbc_data.update_documents(rbc_parse.parse_document(doc_url))
+        rbc_data.update_topic_image(topic_url)
 
 
 def updating():
