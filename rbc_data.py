@@ -420,8 +420,8 @@ def describe_doc(doc_title):
         FROM Document
         WHERE title = "{}"
     '''.format(doc_title.replace('"', ''))).fetchall() != []:
-        answer = ['images/docs/' + doc_title + ' L.png',
-                  'images/docs/' + doc_title + ' F.png']
+        answer = ['data/images/docs/' + doc_title + ' L.png',
+                  'data/images/docs/' + doc_title + ' F.png']
     cur.close()
     return answer
 
@@ -458,7 +458,7 @@ def describe_topic(topic_title):
         answer = ["Количество документов в теме " + str(docs_count) +
                   "\n\nСреднее количество слов в документе " +
                   str(docs_avg_length),
-                  'images/topics/' + topic_title + ' L.png',
-                  'images/topics/' + topic_title + ' F.png']
+                  'data/images/topics/' + topic_title + ' L.png',
+                  'data/images/topics/' + topic_title + ' F.png']
     conn.close()
     return answer
