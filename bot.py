@@ -84,7 +84,8 @@ def bot_topic(message):
         else:
             bot.send_message(message.chat.id, "Тема не найдена")
     else:
-        bot.send_message(message.chat.id, "Введите название темы после команды")
+        bot.send_message(message.chat.id,
+                         "Введите название темы после команды")
 
 
 @bot.message_handler(commands=['doc'])
@@ -102,7 +103,8 @@ def bot_doc(message):
         else:
             bot.send_message(message.chat.id, "Документ не найден")
     else:
-        bot.send_message(message.chat.id, "Введите название документа после команды")
+        bot.send_message(message.chat.id,
+                         "Введите название документа после команды")
 
 
 @bot.message_handler(commands=['words'])
@@ -120,7 +122,8 @@ def bot_words(message):
         else:
             bot.send_message(message.chat.id, "Тема не найдена")
     else:
-        bot.send_message(message.chat.id, "Введите название темы после команды")
+        bot.send_message(message.chat.id,
+                         "Введите название темы после команды")
 
 
 @bot.message_handler(commands=['describe_doc'])
@@ -141,7 +144,8 @@ def bot_describe_doc(message):
         else:
             bot.send_message(message.chat.id, "Документ не найден")
     else:
-        bot.send_message(message.chat.id, "Введите название документа после команды")
+        bot.send_message(message.chat.id,
+                         "Введите название документа после команды")
 
 
 @bot.message_handler(commands=['describe_topic'])
@@ -164,7 +168,8 @@ def bot_describe_topic(message):
         else:
             bot.send_message(message.chat.id, "Тема не найдена")
     else:
-        bot.send_message(message.chat.id, "Введите название темы после команды")
+        bot.send_message(message.chat.id,
+                         "Введите название темы после команды")
 
 
 @bot.message_handler()

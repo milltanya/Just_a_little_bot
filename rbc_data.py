@@ -336,7 +336,7 @@ def doc(title):
     :param title: название документа (string)
     :return: string
     """
-    conn = sqlite3.connect('rbc.db')
+    conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
     text = cur.execute('''
         SELECT text
@@ -359,12 +359,13 @@ def words(topic_title):
     :param topic_title: название темы (string)
     :return: string
     """
-    conn = sqlite3.connect('rbc.db')
+    conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
-    url = cur.execute('''SELECT url
-         FROM Topic
-         WHERE title = "{}"
-    )'''.format(topic_title.replace('"', ''))).fetchall()
+    url = cur.execute('''
+        SELECT url
+        FROM Topic
+        WHERE title = "{}"
+    '''.format(topic_title.replace('"', ''))).fetchall()
     if url == []:
         return None
     else:
@@ -372,9 +373,9 @@ def words(topic_title):
         docs = cur.execute('''
             SELECT Document.title
             FROM Topic_document
-            ON Topic_document.topic_url = "{}"
             JOIN Document
             ON Topic_document.doc_url = Document.url
+            WHERE Topic_document.topic_url = "{}"
         '''.format(url.replace('"', ''))).fetchall()
         words = collections.defaultdict(int)
         count_words(topic_title, words, 3)
@@ -383,11 +384,11 @@ def words(topic_title):
         tags = cur.execute('''
                 SELECT Document_tag.tag_title
                 FROM Topic_document
-                ON Topic_document.topic_url = "{}"
                 JOIN Document
                 ON Topic_document.doc_url = Document.url
                 JOIN Document_tag
                 ON Document.url = Document_tag.doc_url
+                WHERE Topic_document.topic_url = "{}"
             '''.format(url.replace('"', ''))).fetchall()
         for tag_title in tags:
             count_words(tag_title[0], words, 1)
@@ -411,7 +412,7 @@ def describe_doc(doc_title):
     :param doc_title: название документа (string)
     :return: list
     """
-    conn = sqlite3.connect('rbc.db')
+    conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
     answer = None
     if cur.execute('''
@@ -432,7 +433,7 @@ def describe_topic(topic_title):
     :param topic_title: название темы (string)
     :return: list
     """
-    conn = sqlite3.connect('rbc.db')
+    conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
     answer = None
     url = cur.execute('''
@@ -445,9 +446,9 @@ def describe_topic(topic_title):
         docs_text = cur.execute('''
                 SELECT Document.text
                 FROM Topic_document
-                ON Topic_document.topic_url = "{}"
                 JOIN Document
                 ON Topic_document.doc_url = Document.url
+                WHERE Topic_document.topic_url = "{}"
             '''.format(url.replace('"', ''))).fetchall()
         docs_count = len(docs_text)
         docs_avg_length = 0
