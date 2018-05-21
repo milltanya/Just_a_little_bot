@@ -86,20 +86,6 @@ def get_existing_docs_url():
     return list(item[0] for item in existing_url)
 
 
-def get_last_document_date():
-    conn = sqlite3.connect('data/rbc.db')
-    cur = conn.cursor()
-    date = cur.execute('''
-        SELECT MAX(time)
-        FROM Document;
-    ''').fetchall()
-    conn.close()
-    if date != []:
-        return date[0][0]
-    else:
-        return None
-
-
 def update_docs_in_topic(topic, docs_in_topic):
     """
     Обновляет таблицу Topic_document значениями словаря docs_in_topic

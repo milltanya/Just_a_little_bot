@@ -14,12 +14,11 @@ def update():
     existing_topics_url = rbc_data.get_existing_topics_url()
     existing_docs_url = rbc_data.get_existing_docs_url()
     for item in page.find_all('a', {'class': 'item__link no-injects'}):
-        last_doc_date = rbc_data.get_last_document_date()
         topic_url = item.get('href')
         if topic_url not in existing_topics_url:
             existing_topics_url.append(topic_url)
             rbc_data.update_topics(rbc_parse.parse_topic(topic_url))
-        docs = rbc_parse.parse_docs_in_topic(topic_url, last_doc_date)
+        docs = rbc_parse.parse_docs_in_topic(topic_url)
         rbc_data.update_docs_in_topic(topic_url, docs)
         for doc_url in docs:
             if doc_url not in existing_docs_url:

@@ -89,7 +89,7 @@ def parse_document(url):
             'text': text, 'tags': tags}
 
 
-def parse_docs_in_topic(url, last_date):
+def parse_docs_in_topic(url):
     """
     Возвращает список адресов документов в теме по ее адресу
     :param url: string
@@ -99,14 +99,9 @@ def parse_docs_in_topic(url, last_date):
     docs = []
     for document in page.find_all('div', {'class':
                                   "item item_story-single js-story-item"}):
-        doc_time = string_to_time(document.find('span', {'class':
-                                  'item__info'}).text.strip())
-        if last_date is None or last_date < doc_time:
-            docs.append(document.find('a', {'class':
-                        'item__link no-injects js-yandex-counter'}).get(
-                        'href'))
-        else:
-            break
+        docs.append(document.find('a', {'class':
+                    'item__link no-injects js-yandex-counter'}).get(
+                    'href'))
     return docs
 
 
