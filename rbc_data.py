@@ -5,6 +5,7 @@ import collections
 import matplotlib
 import pandas
 import os
+import config
 matplotlib.use('Agg')
 import matplotlib.pyplot
 
@@ -127,7 +128,7 @@ def make_image(data, plot_title, xlabel, ylabel, file_name):
     :param file_name: Название файла(string)
     :return:
     """
-    if data == []:
+    if not data:
         data = [0]
     data_frame = pandas.DataFrame(data)
     plot = data_frame.plot(kind='bar', title=plot_title)
@@ -175,9 +176,11 @@ def update_topics(topic):
     cur.execute('''
         INSERT OR IGNORE INTO Topic (url, title, description)
         VALUES ("{}", "{}", "{}")
-    '''.format(topic['url'].replace('"', ''),
-                topic['title'].replace('"', ''),
-                topic['description'].replace('"', '')))
+    '''.format(
+        topic['url'].replace('"', ''),
+        topic['title'].replace('"', ''),
+        topic['description'].replace('"', '')
+    ))
     conn.commit()
     conn.close()
 
@@ -186,23 +189,23 @@ def update_topic_image(topic_url):
     conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
     topic_title = cur.execute('''
-            SELECT title
-            FROM Topic
-            WHERE url = "{}"
-        '''.format(topic_url)).fetchall()[0][0]
+        SELECT title
+        FROM Topic
+        WHERE url = "{}"
+    '''.format(topic_url)).fetchall()[0][0]
     docs_text = cur.execute('''
-                SELECT Document.text
-                FROM (
-                    SELECT doc_url
-                    FROM Topic_document
-                    WHERE topic_url = "{}"
-                    ) AS A
-                JOIN Document
-                ON A.doc_url = Document.url
-            '''.format(topic_url)).fetchall()
+        SELECT Document.text
+        FROM (
+            SELECT doc_url
+            FROM Topic_document
+            WHERE topic_url = "{}"
+            ) AS A
+        JOIN Document
+        ON A.doc_url = Document.url
+    '''.format(topic_url)).fetchall()
+    conn.close()
     text = ' '.join([item[0] for item in docs_text])
     describe_text(text, 'topics/' + topic_title)
-    conn.close()
 
 
 def update_documents(document):
@@ -218,20 +221,20 @@ def update_documents(document):
         INSERT OR IGNORE INTO Document (url, title, time, text)
         VALUES ("{}", "{}", "{}", "{}")
     '''.format(document['url'].replace('"', ''),
-                document['title'].replace('"', ''),
-                document['time'].replace('"', ''),
-                document['text'].replace('"', '')))
+               document['title'].replace('"', ''),
+               document['time'].replace('"', ''),
+               document['text'].replace('"', '')))
     for tag_title in document['tags'].keys():
         cur.execute('''
             INSERT OR IGNORE INTO Tag (title, url)
             VALUES ("{}", "{}")
         '''.format(tag_title.replace('"', ''),
-                    document['tags'][tag_title].replace('"', '')))
+                   document['tags'][tag_title].replace('"', '')))
         cur.execute('''
             INSERT OR IGNORE INTO Document_tag (doc_url, tag_title)
             VALUES ("{}", "{}")
         '''.format(document['url'].replace('"', ''),
-                    tag_title.replace('"', '')))
+                   tag_title.replace('"', '')))
     conn.commit()
     conn.close()
 
@@ -251,10 +254,7 @@ def new_docs(number):
         ORDER BY time DESC
     ''').fetchall()[:number]
     conn.close()
-    answer = []
-    for document in docs:
-        answer.append(document[0] + '\n' + document[1])
-    return answer
+    return list(document[0] + '\n' + document[1] for document in docs)
 
 
 def new_topics(number):
@@ -276,10 +276,7 @@ def new_topics(number):
         ORDER BY Document.time DESC
     ''').fetchall()[:number]
     conn.close()
-    answer = []
-    for topic in topics:
-        answer.append(topic[0] + '\n' + topic[1])
-    return answer
+    return list(topic[0] + '\n' + topic[1] for topic in topics)
 
 
 def topic(title):
@@ -296,11 +293,10 @@ def topic(title):
         FROM Topic
         WHERE title = "{}"
     '''.format(title.replace('"', ''))).fetchall()
-    if description == []:
+    if not description:
         conn.close()
         return None
     else:
-        answer = title + '\n' + description[0][0]
         docs = cur.execute('''
             SELECT Document.title, Document.url
             FROM (SELECT url
@@ -313,9 +309,9 @@ def topic(title):
             ORDER BY Document.time DESC
         '''.format(title.replace('"', ''))).fetchall()[:5]
         conn.close()
-        for doc in docs:
-            answer += '\n\n' + doc[0] + '\n' + doc[1]
-        return answer
+        return title + '\n' + description[0][0] + '\n'.join(
+            '\n' + doc[0] + '\n' + doc[1] for doc in docs
+        )
 
 
 def doc(title):
@@ -332,7 +328,7 @@ def doc(title):
         WHERE title = "{}"
     '''.format(title.replace('"', ''))).fetchall()
     conn.close()
-    if text == []:
+    if not text:
         return None
     else:
         return text[0][0]
@@ -340,10 +336,11 @@ def doc(title):
 
 def words(topic_title):
     """
-    Возвращает 5 самых значимых слов в теме. Формула для подсчета значимости
-    слова: +3 за упоминание слова в названии темы, +2 за упоминание слова в
-    названии документа в теме, +1 за упоминание слова в теге, слова длины 1 не
-    учитываются, длины 2-3 - только написанные в верхнем регистре(аббревиатуры)
+    Возвращает 5 самых значимых слов в теме. Для подсчета значимости
+    слова используются костанты POINTS_FOR_TOPIC_TITLE,
+    POINTS_FOR_DOCUMENT_TITLE, POINTS_FOR_TAG.
+    Слова длины 1 не учитываются, длины 2-3 -
+    только написанные в верхнем регистре(аббревиатуры)
     :param topic_title: название темы (string)
     :return: string
     """
@@ -354,7 +351,8 @@ def words(topic_title):
         FROM Topic
         WHERE title = "{}"
     '''.format(topic_title.replace('"', ''))).fetchall()
-    if url == []:
+    if not url:
+        conn.close()
         return None
     else:
         url = url[0][0]
@@ -366,9 +364,9 @@ def words(topic_title):
             WHERE Topic_document.topic_url = "{}"
         '''.format(url.replace('"', ''))).fetchall()
         words = collections.defaultdict(int)
-        count_words(topic_title, words, 3)
+        count_words(topic_title, words, config.POINTS_FOR_TOPIC_TITLE)
         for doc_title in docs:
-            count_words(doc_title[0], words, 2)
+            count_words(doc_title[0], words, config.POINTS_FOR_DOCUMENT_TITLE)
         tags = cur.execute('''
                 SELECT Document_tag.tag_title
                 FROM Topic_document
@@ -379,7 +377,7 @@ def words(topic_title):
                 WHERE Topic_document.topic_url = "{}"
             '''.format(url.replace('"', ''))).fetchall()
         for tag_title in tags:
-            count_words(tag_title[0], words, 1)
+            count_words(tag_title[0], words, config.POINTS_FOR_TAG)
         conn.close()
         best_words = []
         for word in words.keys():
@@ -407,7 +405,7 @@ def describe_doc(doc_title):
         SELECT *
         FROM Document
         WHERE title = "{}"
-    '''.format(doc_title.replace('"', ''))).fetchall() != []:
+    '''.format(doc_title.replace('"', ''))).fetchall():
         answer = ['data/images/docs/' + doc_title + ' L.png',
                   'data/images/docs/' + doc_title + ' F.png']
     cur.close()
@@ -429,7 +427,7 @@ def describe_topic(topic_title):
             FROM Topic
             WHERE title = "{}"
     '''.format(topic_title.replace('"', ''))).fetchall()
-    if url != []:
+    if url:
         url = url[0][0]
         docs_text = cur.execute('''
                 SELECT Document.text

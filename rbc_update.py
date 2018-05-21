@@ -10,7 +10,7 @@ def update():
     Обновляет базу данных
     :return:
     """
-    page = rbc_parse.make_soup('https://www.rbc.ru/story/')
+    page = rbc_parse.make_soup(config.MAIN_URL)
     existing_topics_url = rbc_data.get_existing_topics_url()
     existing_docs_url = rbc_data.get_existing_docs_url()
     for item in page.find_all('a', {'class': 'item__link no-injects'}):
@@ -32,7 +32,7 @@ def updating():
     while True:
         update()
         f = open('log/update.txt', 'a')
-        f.write(time.strftime("%Y-%m-%d %H:%M", time.gmtime()))
+        f.write(time.strftime("%Y-%m-%d %H:%M\n", time.gmtime()))
         f.close()
         time.sleep(config.UPDATE_PAUSE*60)
 

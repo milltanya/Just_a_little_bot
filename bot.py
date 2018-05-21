@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import telebot
+import config
 import rbc_data
-token = '570771300:AAGMX2JIFGv-2gglbJZDMj0xN0MFjTjy0Es'
-bot = telebot.TeleBot(token)
+bot = telebot.TeleBot(config.TOKEN)
 
 
 @bot.message_handler(commands=['help', 'start'])
@@ -12,25 +12,7 @@ def bot_help(message):
     :param message: сообщение
     :return: None
     """
-    help_text = 'Привет! Ты используешь бот Just_a_little_bot, который ' \
-                'позволяет тебе получать самые актуальные новости с rbc.ru.' \
-                '\nВот что умееет бот:\n' \
-                '/help - показать все, что может бот\n' \
-                '/new_docs <N> - показать N самых свежих новостей\n' \
-                '/new_topics <N> - показать N самых свежих тем\n' \
-                '/topic <topic_name> - показать описание темы и заголовки ' \
-                '5 самых свежих новостей в этой теме\n' \
-                '/doc <doc_title> - показать текст документа ' \
-                'с заданным заголовком\n' \
-                '/words <topic_name> - показать 5 слов, лучше всего ' \
-                'характеризующих тему\n' \
-                '/describe_doc <doc_title> - вывести статистику по документу' \
-                ' (распределение частот слов, распределение длин слов)\n' \
-                '/describe_topic <topic_name> - вывести статистику по теме ' \
-                '(количество документов в теме, средняя длина документов, ' \
-                'распределение частот слов в рамках всей темы, ' \
-                'распределение длин слов в рамках всей темы)'
-    bot.send_message(message.chat.id, help_text)
+    bot.send_message(message.chat.id, config.HELP_TEXT)
 
 
 @bot.message_handler(commands=['new_docs'])

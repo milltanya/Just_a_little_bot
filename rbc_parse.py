@@ -5,6 +5,7 @@ from time import gmtime, strftime
 session = requests.Session()
 session.max_redirects = config.MAX_SESSION_NUMBER
 
+
 def make_soup(url):
     """
     Возвращает код страницы по указанному адресу
@@ -13,39 +14,6 @@ def make_soup(url):
     """
     return BeautifulSoup(session.get(url).text.encode(),
                          "html.parser")
-
-
-def month(month_string):
-    """
-    Возврашает номер месяца по его названию (на русском) в формате строки из
-    двух цифр (string)
-    :param month_string: название месяца (string)
-    :return: string
-    """
-    if 'янв' in month_string:
-        return '01'
-    elif 'фев' in month_string:
-        return '02'
-    elif 'мар' in month_string:
-        return '03'
-    elif 'апр' in month_string:
-        return '04'
-    elif 'мая' in month_string:
-        return '05'
-    elif 'июн' in month_string:
-        return '06'
-    elif 'июл' in month_string:
-        return '07'
-    elif 'авг' in month_string:
-        return '08'
-    elif 'сен' in month_string:
-        return '09'
-    elif 'окт' in month_string:
-        return '10'
-    elif 'ноя' in month_string:
-        return '11'
-    elif 'дек' in month_string:
-        return '12'
 
 
 def string_to_time(time_string):
@@ -61,9 +29,10 @@ def string_to_time(time_string):
         answer = strftime("%Y-%m-%d", gmtime()) + " " + info[0]
     elif len(info) == 3:
         answer = strftime("%Y-", gmtime()) + \
-            month(info[1]) + "-" + info[0] + " " + info[2]
+                 config.MONTHS[info[1]] + "-" + info[0] + " " + info[2]
     elif len(info) == 4:
-        answer = info[2] + "-" + month(info[1]) + "-" + info[0] + " " + info[3]
+        answer = info[2] + "-" + config.MONTHS[info[1]] +\
+            "-" + info[0] + " " + info[3]
     return answer
 
 
@@ -96,13 +65,13 @@ def parse_docs_in_topic(url):
     :return: list
     """
     page = make_soup(url)
-    docs = []
-    for document in page.find_all('div', {'class':
-                                  "item item_story-single js-story-item"}):
-        docs.append(document.find('a', {'class':
-                    'item__link no-injects js-yandex-counter'}).get(
-                    'href'))
-    return docs
+    return list(
+        document.find(
+            'a', {'class': 'item__link no-injects js-yandex-counter'}
+        ).get('href') for document in page.find_all(
+            'div', {'class': "item item_story-single js-story-item"}
+        )
+    )
 
 
 def parse_topic(url):
