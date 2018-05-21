@@ -90,7 +90,7 @@ def get_last_document_date():
     conn = sqlite3.connect('data/rbc.db')
     cur = conn.cursor()
     date = cur.execute('''
-        SELECT MIN(time)
+        SELECT MAX(time)
         FROM Document;
     ''').fetchall()
     conn.close()
