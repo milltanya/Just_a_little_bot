@@ -141,6 +141,8 @@ def make_image(data, plot_title, xlabel, ylabel, file_name):
     :param file_name: Название файла(string)
     :return:
     """
+    if data == []:
+        data = [0]
     data_frame = pandas.DataFrame(data)
     plot = data_frame.plot(kind='bar', title=plot_title)
     plot.set_xlabel(xlabel)
@@ -172,7 +174,7 @@ def describe_text(text, file_name):
         frequences[int(words[word] * 100 / total)] += words[word]
     make_image(lengths, 'Длины слов', 'Длина',
                'Количество слов', file_name + ' L')
-    make_image(frequences[:10], 'Частоты слов', 'Частота',
+    make_image(frequences[:10], 'Частоты слов (до 10%)', 'Частота',
                'Количество слов', file_name + ' F')
 
 
