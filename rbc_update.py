@@ -2,6 +2,7 @@ import rbc_data
 import rbc_parse
 import time
 import os
+import config
 
 
 def update():
@@ -34,7 +35,7 @@ def updating():
         f = open('log/update.txt', 'a')
         f.write(time.strftime("%Y-%m-%d %H:%M", time.gmtime()))
         f.close()
-        time.sleep(1800)
+        time.sleep(config.UPDATE_PAUSE*60)
 
 
 if __name__ == '__main__':
