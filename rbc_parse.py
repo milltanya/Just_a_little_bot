@@ -1,7 +1,9 @@
 import requests
+import config
 from bs4 import BeautifulSoup
 from time import gmtime, strftime
-
+session = requests.Session()
+session.max_redirects = config.MAX_SESSION_NUMBER
 
 def make_soup(url):
     """
@@ -9,7 +11,7 @@ def make_soup(url):
     :param url: string
     :return: soup
     """
-    return BeautifulSoup(requests.get(url).text.encode(),
+    return BeautifulSoup(session.get(url).text.encode(),
                          "html.parser")
 
 
