@@ -1,5 +1,6 @@
 # токен бота
-TOKEN = '570771300:AAGMX2JIFGv-2gglbJZDMj0xN0MFjTjy0Es'
+with open('TOKEN.txt', 'r') as file:
+    TOKEN = file.read()
 # период обновления в минутах
 UPDATE_PAUSE = 5
 # максимальное количество сессий
